@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Monitoring SE2026 – BPS Provinsi Lampung</title>
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/sidebar.css" />
+  <link rel="stylesheet" href="assets/css/cards.css" />
+  <link rel="stylesheet" href="assets/css/charts.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <!-- Leaflet Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__logo">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="8" fill="#E8500A"/>
+          <path d="M8 24V10l8-4 8 4v14l-8 4-8-4z" stroke="white" stroke-width="1.5" fill="none"/>
+          <circle cx="16" cy="16" r="3" fill="white"/>
+        </svg>
+      </div>
+      <div class="sidebar__title">
+        <span class="sidebar__title-main">SE2026</span>
+        <span class="sidebar__title-sub">BPS Lampung</span>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav">
+      <span class="sidebar__section-label">Menu Utama</span>
+      <a href="#" class="nav-item active" data-page="overview">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </span>
+        <span class="nav-item__label">Overview</span>
+      </a>
+      <a href="#" class="nav-item" data-page="progres">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span class="nav-item__label">1. Progres Pendataan</span>
+      </a>
+      <a href="#" class="nav-item" data-page="kinerja">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="nav-item__label">2. Kinerja Petugas</span>
+      </a>
+      <a href="#" class="nav-item" data-page="kualitas">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </span>
+        <span class="nav-item__label">3. Kualitas Data</span>
+      </a>
+      <a href="#" class="nav-item" data-page="anggaran">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </span>
+        <span class="nav-item__label">4. Serapan Anggaran</span>
+      </a>
+      <a href="#" class="nav-item" data-page="komunikasi">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span class="nav-item__label">5. Komunikasi Publik</span>
+      </a>
+      <a href="#" class="nav-item" data-page="laporan">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </span>
+        <span class="nav-item__label">6. Laporan Kegiatan</span>
+      </a>
+      <a href="#" class="nav-item" data-page="kkd">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </span>
+        <span class="nav-item__label">7. KKD</span>
+      </a>
+      <a href="#" class="nav-item" data-page="kontrak">
+        <span class="nav-item__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </span>
+        <span class="nav-item__label">8. Kontrak Kinerja</span>
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <div class="sidebar__update">
+        <span class="update-dot"></span>
+        <span id="lastUpdate">Memuat...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content" id="mainContent">
+
+    <!-- TOP HEADER -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <button class="sidebar-toggle" id="sidebarToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="topbar__breadcrumb">
+          <span class="topbar__page-title" id="pageTitle">Dashboard Monitoring SE2026</span>
+        </div>
+      </div>
+      <div class="topbar__right">
+        <div class="topbar__meta">
+          <span class="badge badge--live">● LIVE</span>
+          <span class="topbar__province">Provinsi Lampung</span>
+        </div>
+        <button class="btn-refresh" id="btnRefresh" title="Refresh Data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT WRAPPER -->
+    <div class="page-wrapper">
+
+      <!-- ===== PAGE: OVERVIEW ===== -->
+      <section class="page active" id="page-overview">
+        <div class="page-header">
+          <h1 class="page-header__title">Dashboard Monitoring SE2026</h1>
+          <p class="page-header__subtitle">Kontrol Cepat Progress, Kinerja dan Kualitas – BPS Provinsi Lampung</p>
+        </div>
+
+        <!-- KPI Row -->
+        <div class="kpi-grid" id="overviewKpis"></div>
+
+        <!-- Middle Row -->
+        <div class="grid-2col">
+          <!-- Map -->
+          <div class="card card--map">
+            <div class="card__header">
+              <span class="card__icon">🗺️</span>
+              <div>
+                <div class="card__title">Sebaran Kegiatan Ngibar</div>
+                <div class="card__subtitle">Kabupaten/Kota di Provinsi Lampung</div>
+              </div>
+            </div>
+            <div id="mapOverview" class="map-container"></div>
+            <div class="map-legend" id="mapLegend"></div>
+          </div>
+
+          <!-- Right panels -->
+          <div class="flex-col gap-md">
+            <!-- Kinerja Petugas Mini -->
+            <div class="card">
+              <div class="card__header">
+                <span class="card__icon">👥</span>
+                <div class="card__title">Kinerja Petugas</div>
+              </div>
+              <div class="productivity-bars" id="productivityBars"></div>
+            </div>
+
+            <!-- KKD Mini -->
+            <div class="card">
+              <div class="card__header">
+                <span class="card__icon">📋</span>
+                <div class="card__title">Kontrak Kinerja</div>
+              </div>
+              <div id="kkdMini"></div>
+            </div>
+
+            <!-- Serapan Anggaran Mini -->
+            <div class="card">
+              <div class="card__header">
+                <span class="card__icon">💰</span>
+                <div class="card__title">Serapan Anggaran</div>
+              </div>
+              <div id="anggaranMini"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Komunikasi + Laporan Kegiatan -->
+        <div class="grid-3col">
+          <div class="card" id="komunikasiMini"></div>
+          <div class="card" id="laporanMini"></div>
+          <div class="card" id="kkdSuratMini"></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: PROGRES PENDATAAN ===== -->
+      <section class="page" id="page-progres">
+        <div class="page-header">
+          <h1 class="page-header__title">1. Progres Pendataan</h1>
+          <p class="page-header__subtitle">Monitoring realisasi pencacahan usaha di Provinsi Lampung</p>
+        </div>
+
+        <div class="grid-4col">
+          <div class="card" id="monitoringSLS"></div>
+          <div class="card" id="detailProgres"></div>
+          <div class="card" id="kendalaLapangan"></div>
+          <div class="card" id="ubUmkmNonrespons"></div>
+        </div>
+
+        <div class="grid-2col">
+          <div class="card card--map">
+            <div class="card__header">
+              <span class="card__icon">📍</span>
+              <div class="card__title">Peta Progres Tercacah</div>
+            </div>
+            <div id="mapProgres" class="map-container"></div>
+          </div>
+          <div class="flex-col gap-md">
+            <div class="card" id="modaPengumpulan"></div>
+            <div class="card" id="rasioGeotagging"></div>
+            <div class="card" id="virtualOffice"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: KINERJA PETUGAS ===== -->
+      <section class="page" id="page-kinerja">
+        <div class="page-header">
+          <h1 class="page-header__title">2. Kinerja Petugas</h1>
+          <p class="page-header__subtitle">Monitoring rekrutmen, pelatihan dan produktivitas petugas</p>
+        </div>
+
+        <div class="grid-3col">
+          <div class="card" id="statusPelatihan"></div>
+          <div class="card" id="statistikRekrutmen"></div>
+          <div class="card" id="produktivitasPetugas"></div>
+        </div>
+
+        <div class="grid-2col">
+          <div class="card card--map">
+            <div class="card__header">
+              <span class="card__icon">📍</span>
+              <div class="card__title">Sebaran Petugas per Kabupaten/Kota</div>
+            </div>
+            <div id="mapKinerja" class="map-container"></div>
+          </div>
+          <div class="card" id="risikoPertugas"></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: KUALITAS DATA ===== -->
+      <section class="page" id="page-kualitas">
+        <div class="page-header">
+          <h1 class="page-header__title">3. Kualitas Data</h1>
+          <p class="page-header__subtitle">Total usaha, omzet dan nilai tambah yang tercatat</p>
+        </div>
+        <div class="grid-3col">
+          <div class="card" id="totalUsaha"></div>
+          <div class="card" id="totalOmzet"></div>
+          <div class="card" id="nilaiTambah"></div>
+        </div>
+        <div class="grid-2col">
+          <div class="card" id="kualitasChart"></div>
+          <div class="card" id="kualitasPerKabkot"></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: ANGGARAN ===== -->
+      <section class="page" id="page-anggaran">
+        <div class="page-header">
+          <h1 class="page-header__title">4. Serapan Anggaran</h1>
+          <p class="page-header__subtitle">Realisasi penyerapan anggaran SE2026 Provinsi Lampung</p>
+        </div>
+        <div class="grid-3col">
+          <div class="card" id="paguRevisi"></div>
+          <div class="card" id="paguRealisasi"></div>
+          <div class="card" id="realisasiTertinggi"></div>
+        </div>
+        <div class="grid-2col">
+          <div class="card" id="anggaranChart"></div>
+          <div class="card" id="anggaranRincian"></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: KOMUNIKASI ===== -->
+      <section class="page" id="page-komunikasi">
+        <div class="page-header">
+          <h1 class="page-header__title">5. Komunikasi Publik</h1>
+          <p class="page-header__subtitle">Aktivitas berita, postingan dan media konvensional</p>
+        </div>
+        <div class="grid-4col">
+          <div class="card" id="jumlahBerita"></div>
+          <div class="card" id="jumlahPosting"></div>
+          <div class="card" id="mediaSosial"></div>
+          <div class="card" id="mediaCetak"></div>
+        </div>
+        <div class="card" id="mediaBarchart"></div>
+      </section>
+
+      <!-- ===== PAGE: LAPORAN ===== -->
+      <section class="page" id="page-laporan">
+        <div class="page-header">
+          <h1 class="page-header__title">6. Laporan Kegiatan</h1>
+          <p class="page-header__subtitle">Rekapitulasi laporan kegiatan SE2026</p>
+        </div>
+        <div class="grid-3col">
+          <div class="card" id="targetLaporan"></div>
+          <div class="card" id="laporanDiterima"></div>
+          <div class="card" id="laporanBelum"></div>
+        </div>
+        <div class="card" id="laporanTable"></div>
+      </section>
+
+      <!-- ===== PAGE: KKD ===== -->
+      <section class="page" id="page-kkd">
+        <div class="page-header">
+          <h1 class="page-header__title">7. Komunikasi, Koordinasi & Diplomasi (KKD)</h1>
+          <p class="page-header__subtitle">Surat permintaan dukungan ke BPS Pusat / Kab-Kota</p>
+        </div>
+        <div class="grid-3col">
+          <div class="card" id="suratDikirim"></div>
+          <div class="card" id="suratDiterima"></div>
+          <div class="card" id="tingkatRespons"></div>
+        </div>
+        <div class="grid-2col">
+          <div class="card" id="kkdKKDChart"></div>
+          <div class="card" id="kkdTable"></div>
+        </div>
+      </section>
+
+      <!-- ===== PAGE: KONTRAK KINERJA ===== -->
+      <section class="page" id="page-kontrak">
+        <div class="page-header">
+          <h1 class="page-header__title">8. Kontrak Kinerja</h1>
+          <p class="page-header__subtitle">Persentase surat dukungan, sosialisasi, dan ngibar</p>
+        </div>
+        <div class="grid-3col">
+          <div class="card" id="suratDukungan"></div>
+          <div class="card" id="sosialisasi"></div>
+          <div class="card" id="ngibar"></div>
+        </div>
+        <div class="card" id="kontrakTable"></div>
+      </section>
+
+    </div><!-- end page-wrapper -->
+  </main>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/map.js"></script>
+  <script src="assets/js/charts.js"></script>
+  <script src="assets/js/pages/overview.js"></script>
+  <script src="assets/js/pages/progres.js"></script>
+  <script src="assets/js/pages/kinerja.js"></script>
+  <script src="assets/js/pages/other-pages.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
