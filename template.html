@@ -114,6 +114,7 @@ select.wil:hover{border-color:var(--merah)}
 .k-basis .cap,.k-kedua .cap{display:inline-block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;
   background:var(--hijau);padding:1px 5px;border-radius:2px;margin-right:5px;vertical-align:1px}
 .k-basis{font-size:11.5px;color:var(--redup);margin-top:4px}
+.k-basis.rapat2{margin-top:6px;margin-bottom:1px}
 .k-bar{height:5px;background:#EFE9D8;margin-top:8px;overflow:hidden}
 .k-bar span{display:block;height:100%;background:var(--warna)}
 .k-parts{margin-top:8px;border-top:1px solid var(--garis);padding-top:7px;display:flex;gap:14px;flex-wrap:wrap}
@@ -348,7 +349,8 @@ const val = (k, f) => R[k][f];
 const basisField = n => n.base || (n.resmi ? n.resmi.b : null);
 const rasio = (k, n) => { const b = basisField(n); return (b && val(k,b)) ? val(k,n.field)/val(k,b)*100 : null; };
 const pResmi = (k, n) => n.resmi ? val(k, n.resmi.p) : null;
-const promo  = n => !!(n.resmi && !(n.resmi.f && n.resmi.f !== n.field));   // persen FASIH jadi sorotan
+const promo  = n => !!n.resmi;                                         // persen FASIH jadi sorotan
+const pisah  = n => !!(n.resmi && n.resmi.f && n.resmi.f !== n.field);  // persen FASIH milik angka lain
 const pUtama = (k, n) => promo(n) ? pResmi(k, n) : rasio(k, n);
 const vResmi = (k, n) => n.resmi ? val(k, n.resmi.f || n.field) : null;
 
@@ -396,15 +398,18 @@ function kartu(id, ragam){
   const sub = n.sub || (mini && n.tipe === 'tautan' ? n.tautan_ket : '');
   if (sub || mini) h += `<div class="k-sub">${sub || ''}</div>`;
   h += `<div class="k-baris"><span class="k-nilai">${nf(v)}</span>${
-    utama !== null ? `<span class="k-pct sorot">${pf(utama)}</span>` : ''}</div>`;
+    utama !== null && !pisah(n) ? `<span class="k-pct sorot">${pf(utama)}</span>` : ''}</div>`;
 
-  if (promo(n)) h += `<div class="k-basis"><span class="cap">FASIH</span>dari ${n.resmi.bl} ${nf(val(wil, n.resmi.b))}</div>`;
+  if (pisah(n))
+    h += `<div class="k-basis rapat2"><span class="cap">FASIH</span>${n.resmi.fl} ${nf(vResmi(wil, n))}</div>
+      <div class="k-baris"><span class="k-pct sorot">${pf(utama)}</span></div>
+      <div class="k-basis">dari ${n.resmi.bl} ${nf(val(wil, n.resmi.b))}</div>`;
+  else if (promo(n)) h += `<div class="k-basis"><span class="cap">FASIH</span>dari ${n.resmi.bl} ${nf(val(wil, n.resmi.b))}</div>`;
   else if (n.base) h += `<div class="k-basis">dari ${nf(val(wil, n.base))} ${byId[n.parent].unit}</div>`;
 
   if (pb !== null) h += `<div class="k-bar"><span style="width:${Math.max(0, Math.min(100, pb))}%"></span></div>`;
 
   if (promo(n) && n.base) h += `<div class="k-kedua"><b>${pf(rasio(wil, n))}</b> porsi dari ${nf(val(wil, n.base))} ${byId[n.parent].unit}</div>`;
-  else if (n.resmi && !promo(n)) h += `<div class="k-kedua"><span class="cap">FASIH</span>${n.resmi.fl} ${nf(vResmi(wil, n))} \u00b7 <b>${pf(pResmi(wil, n))}</b> dari ${n.resmi.bl} ${nf(val(wil, n.resmi.b))}</div>`;
   else if (n.turunan && !mini) h += `<div class="k-turunan">Angka turunan, bukan kolom langsung di ekspor.</div>`;
 
   if ((showRinci || akar) && !mini && n.parts) h += `<div class="k-parts">` + n.parts.map(
