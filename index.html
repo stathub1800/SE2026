@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Struktur Progres SE2026 &mdash; BPS Provinsi Lampung</title>
+<style>
+:root{
+  --merah:#ED1C24; --maroon:#9A0501; --ink:#231F20; --cream:#FFFBEE;
+  --kuning:#FEBD26; --hijau:#73B24A; --biru:#2892C6; --oranye:#C45824;
+  --abu:#8A8A8A; --garis:#E3DBC6; --kertas:#FFFFFF; --redup:#6C665C;
+  --disp:"Franklin Gothic Medium Cond","Franklin Gothic Medium","Franklin Gothic","Arial Narrow","Helvetica Neue",Arial,sans-serif;
+  --body:Calibri,"Segoe UI",system-ui,-apple-system,sans-serif;
+  --num:"Arial Narrow",Arial,"Helvetica Neue",sans-serif;
+  --wk:232px; --wm:146px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--body);background:var(--cream);color:var(--ink);font-size:15px;line-height:1.45}
+body.kunci-gulir{overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:none}
+:focus-visible{outline:2.5px solid var(--merah);outline-offset:2px}
+
+/* ---------- kop ---------- */
+.kop{background:var(--maroon);color:#fff;padding:14px 22px 15px}
+.kop-in{max-width:1400px;margin:0 auto;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.kop .eyebrow{font-family:var(--disp);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--kuning)}
+.kop h1{font-family:var(--disp);font-size:27px;font-weight:500;line-height:1.08;margin-top:3px}
+.kop .tagline{font-size:13px;color:#F3D9D6;margin-top:5px;max-width:54ch}
+.kop-kanan{margin-left:auto;text-align:right;font-size:12px;color:#EFCFCB}
+.kop-kanan b{color:#fff;font-weight:600}
+
+/* ---------- kendali ---------- */
+.kendali{background:var(--kertas);border-bottom:1px solid var(--garis);position:sticky;top:0;z-index:40}
+.kendali-in{max-width:1400px;margin:0 auto;padding:9px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lbl{font-family:var(--disp);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--redup)}
+select.wil{font-family:var(--disp);font-size:16px;font-weight:500;color:var(--maroon);background:var(--cream);
+  border:1.5px solid var(--garis);border-radius:3px;padding:5px 10px;cursor:pointer;max-width:100%}
+select.wil:hover{border-color:var(--merah)}
+.kendali .kanan{margin-left:auto;display:flex;gap:7px;flex-wrap:wrap}
+.tbl{border:1.5px solid var(--garis);border-radius:3px;padding:5px 12px;font-size:12.5px;background:var(--kertas)}
+.tbl:hover{border-color:var(--merah);color:var(--maroon)}
+.tbl[aria-pressed="true"]{background:var(--ink);color:var(--cream);border-color:var(--ink)}
+.tbl[aria-pressed="true"]:hover{background:var(--maroon);border-color:var(--maroon);color:#fff}
+
+/* ---------- kunci baca ---------- */
+.kunci{max-width:1400px;margin:0 auto;padding:11px 22px 0;display:flex;gap:22px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--redup)}
+.kunci i{font-style:normal;display:inline-flex;align-items:center;gap:7px}
+.sw{width:26px;border-top:2.5px solid var(--ink);display:inline-block}
+.sw.putus{border-top-style:dashed;border-color:var(--biru)}
+
+/* ---------- pohon ---------- */
+.kanvas{padding:16px 0 30px;overflow-x:auto}
+.pohon-in{width:100%;min-width:calc(var(--wk)*4 + 74px);margin:0 auto;padding:0 22px;
+  display:flex;flex-direction:column;align-items:center}
+.tier{position:relative;align-self:stretch}
+.baris{display:flex;justify-content:center;align-items:flex-start;gap:10px}
+.baris.rapat{gap:9px;align-items:stretch}
+.kol{position:relative;padding-top:22px;flex:0 1 0;min-width:var(--wk);display:flex;flex-direction:column;align-items:center}
+.kol.mini{min-width:var(--wm)}
+.kol::before{content:"";position:absolute;top:0;left:-6px;right:-6px;border-top:2px solid var(--garis)}
+.kol::after{content:"";position:absolute;top:0;left:calc(50% - 1px);height:22px;border-left:2px solid var(--garis)}
+.kol:first-child::before{left:calc(50% - 1px)}
+.kol:last-child::before{right:calc(50% - 1px)}
+.kol:only-child::before{display:none}
+.batang{height:16px;position:relative}
+.batang::before{content:"";position:absolute;left:calc(50% - 1px);top:0;bottom:0;border-left:2px solid var(--garis)}
+
+/* satelit: anak bersatuan lain */
+.satelit{margin-top:16px;border-top:2px dashed var(--biru);padding-top:13px;position:relative;align-self:stretch}
+.sat-lbl{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--cream);
+  padding:0 9px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--biru);white-space:nowrap}
+.satelit .kol{padding-top:0}
+.satelit .kol::before,.satelit .kol::after{display:none}
+
+/* ---------- pita persamaan ---------- */
+.pita{display:flex;justify-content:center}
+.pita-in{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:center;
+  background:var(--kertas);border:1.5px solid var(--garis);border-radius:2px;
+  padding:5px 13px;font-family:var(--num);font-size:13.5px;font-variant-numeric:tabular-nums;color:var(--redup)}
+.pita-in .op{font-family:var(--disp);color:var(--abu);font-size:14px}
+.pita-in .hasil{color:var(--maroon);font-weight:700}
+.pita-in .cek{font-family:var(--body);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--hijau);border-left:1px solid var(--garis);padding-left:9px}
+.pita-in .cek.beda{color:var(--merah)}
+.pita-in .trm{color:var(--ink)}
+.pita.kecil{width:0;min-width:100%}
+.pita.kecil .pita-in{font-size:12.5px;padding:4px 11px;max-width:100%}
+
+/* ---------- kartu ---------- */
+.kartu{width:100%;max-width:var(--wk);text-align:left;background:var(--kertas);
+  border:1.5px solid var(--garis);border-top:4px solid var(--warna,var(--abu));
+  border-radius:2px;padding:11px 13px 12px;position:relative;display:block;
+  transition:border-color .13s,transform .13s,box-shadow .13s}
+.kartu:hover{border-color:var(--warna);box-shadow:0 3px 0 rgba(35,31,32,.055);transform:translateY(-1px)}
+.kartu.akar{width:412px;max-width:none;border-top-width:6px;padding:15px 18px 16px}
+.kartu.tautan{border-style:dashed;background:#FDFCF7}
+.k-atas{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.k-nama{font-family:var(--disp);font-size:16.5px;font-weight:500;line-height:1.12}
+.kartu.akar .k-nama{font-size:23px}
+.k-unit{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--abu);
+  font-family:var(--body);white-space:nowrap;flex:none;padding-top:2px}
+.k-sub{font-size:11.5px;color:var(--redup);margin:-3px 0 6px}
+.k-nilai{font-family:var(--num);font-size:29px;font-weight:700;line-height:1;color:var(--warna);
+  font-variant-numeric:tabular-nums}
+.kartu.akar .k-nilai{font-size:44px;color:var(--maroon)}
+.k-baris{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.k-pct{font-family:var(--num);font-size:14px;font-weight:700;color:var(--ink);margin-left:0;font-variant-numeric:tabular-nums}
+.k-pct.sorot{font-size:23px;color:var(--warna);line-height:1}
+.kartu.akar .k-pct.sorot{font-size:30px}
+.k-kedua{margin-top:7px;padding-top:6px;border-top:1px dotted var(--garis);font-size:11px;color:var(--redup);line-height:1.35}
+.k-kedua b{font-family:var(--num);font-size:12.5px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.k-basis .cap,.k-kedua .cap{display:inline-block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;
+  background:var(--hijau);padding:1px 5px;border-radius:2px;margin-right:5px;vertical-align:1px}
+.k-basis{font-size:11.5px;color:var(--redup);margin-top:4px}
+.k-bar{height:5px;background:#EFE9D8;margin-top:8px;overflow:hidden}
+.k-bar span{display:block;height:100%;background:var(--warna)}
+.k-parts{margin-top:8px;border-top:1px solid var(--garis);padding-top:7px;display:flex;gap:14px;flex-wrap:wrap}
+.k-parts div{font-size:11.5px;color:var(--redup)}
+.k-parts b{display:block;font-family:var(--num);font-size:14.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+.k-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--biru);color:#fff;
+  font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:2px;white-space:nowrap}
+.k-fasih{margin-top:7px;padding-top:6px;border-top:1px dotted var(--garis);font-size:11px;color:var(--redup);line-height:1.3}
+.k-fasih b{font-family:var(--num);font-size:13px;color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+.k-fasih .cap{display:inline-block;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;
+  background:var(--abu);padding:1px 5px;border-radius:2px;margin-right:5px;vertical-align:1px}
+.kartu.mini .k-fasih{font-size:10px;margin-top:6px;padding-top:5px}
+.kartu.mini .k-fasih b{font-size:11.5px}
+.k-turunan{margin-top:7px;padding-top:6px;border-top:1px dotted var(--garis);font-size:10.5px;color:#A9A296;font-style:italic}
+.kartu.mini .k-turunan{font-size:9.5px}
+.k-delta{font-family:var(--num);font-size:11.5px;margin-top:6px;font-variant-numeric:tabular-nums}
+.k-delta.baik{color:var(--hijau)} .k-delta.buruk{color:var(--merah)} .k-delta.rata{color:var(--abu)}
+
+/* kartu ringkas untuk daun */
+.kartu.mini{width:100%;max-width:300px;padding:11px 12px 12px;height:100%;display:flex;flex-direction:column}
+.kartu.mini .k-atas{display:block;margin-bottom:4px}
+.kartu.mini .k-nama{font-size:13px;line-height:1.16;display:block;min-height:2.32em}
+.kartu.mini .k-unit{display:block;margin:2px 0 0;padding:0;font-size:9px;color:#B4ADA0}
+.kartu.mini .k-sub{font-size:10px;line-height:1.22;margin:3px 0 6px;min-height:2.44em}
+.kartu.mini .k-nilai{font-size:20px}
+.kartu.mini .k-pct{font-size:12px;margin-left:0;display:block;margin-top:2px}
+.kartu.mini .k-pct.sorot{font-size:17px;margin-top:3px}
+.kartu.mini .k-baris{display:block}
+.kartu.mini .k-kedua{font-size:9.5px;margin-top:6px;padding-top:5px}
+.kartu.mini .k-kedua b{font-size:10.5px}
+.kartu.mini .k-bar{height:4px;margin-top:7px}
+.kartu.mini .k-basis{font-size:10px;margin-top:4px}
+.kartu.mini .k-delta{font-size:10px;margin-top:auto;padding-top:5px}
+.kartu.mini .k-tag{font-size:8.5px;padding:1.5px 6px}
+
+.buka{margin-top:9px;border:1.5px solid var(--garis);background:var(--kertas);border-radius:2px;
+  padding:3px 11px;font-size:12px;color:var(--redup);white-space:nowrap}
+.buka:hover{border-color:var(--merah);color:var(--maroon)}
+.buka b{font-family:var(--num);font-weight:700;color:var(--ink)}
+
+/* ---------- band rincian selebar layar ---------- */
+.sambung{height:34px;line-height:0}
+.sambung svg{display:block}
+.band{padding:0 0 26px;overflow-x:auto}
+.band-in{padding:0 22px;width:100%;min-width:calc(var(--wm)*7 + 160px)}
+.band .baris{gap:26px}
+.satelit .baris.rapat{justify-content:flex-start}
+.satelit .kol{flex:0 0 calc(var(--slot) - 9px)}
+
+/* ---------- popup ---------- */
+.tirai{position:fixed;inset:0;background:rgba(35,31,32,.55);z-index:80;display:flex;
+  align-items:flex-start;justify-content:center;padding:26px 18px;overflow-y:auto}
+.tirai[hidden]{display:none}
+.pop{background:var(--kertas);width:min(1000px,100%);border-top:6px solid var(--warna,var(--maroon));
+  box-shadow:0 18px 50px rgba(35,31,32,.32);position:relative}
+.pop-kop{padding:16px 22px 13px;border-bottom:1px solid var(--garis);display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.pop-jalur{font-size:11.5px;color:var(--redup);margin-bottom:2px;padding-right:34px}
+.pop-jalur b{color:var(--maroon);font-weight:600}
+.pop-kop h2{font-family:var(--disp);font-size:26px;font-weight:500;line-height:1.08}
+.pop-kop .satuan{font-size:11.5px;color:var(--redup);margin-top:2px}
+.pop-angka{margin-left:auto;text-align:right;padding-right:30px}
+.pop-angka .v{font-family:var(--num);font-size:36px;font-weight:700;line-height:1;
+  color:var(--warna,var(--maroon));font-variant-numeric:tabular-nums}
+.pop-angka .s{font-size:11.5px;color:var(--redup);margin-top:2px}
+.tutup{position:absolute;top:8px;right:10px;font-size:23px;line-height:1;color:var(--abu);
+  width:30px;height:30px;border-radius:2px}
+.tutup:hover{background:var(--cream);color:var(--merah)}
+
+.pop-ket{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:15px 22px 17px;
+  border-bottom:1px solid var(--garis);background:#FFFDF6}
+.pop-ket h3{font-family:var(--disp);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--redup);margin-bottom:5px}
+.pop-ket p{font-size:13.5px;max-width:60ch}
+.rumus{font-family:var(--num);font-size:14.5px;background:var(--cream);border-left:3px solid var(--warna,var(--kuning));
+  padding:6px 11px;margin-top:5px;font-variant-numeric:tabular-nums}
+.asal{font-size:11.5px;color:var(--abu);margin-top:6px}
+.rumus.resmi{border-left-color:var(--hijau);font-family:var(--body);font-size:12.5px;line-height:1.45}
+.rumus.resmi b{font-family:var(--body);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--hijau)}
+.rumus.resmi .asal2{font-size:11px;color:var(--abu)}
+.rumus.catatanturun{border-left-color:var(--abu);font-family:var(--body);font-size:12.5px;color:var(--redup)}
+.pop-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.pop-nav button{border:1.5px solid var(--garis);border-radius:2px;padding:3px 10px;font-size:12px}
+.pop-nav button:hover{border-color:var(--warna);color:var(--maroon)}
+.pop-nav .naik{border-color:var(--maroon);color:var(--maroon)}
+
+.pop-tab{padding:14px 22px 20px}
+.pop-tab h3{font-family:var(--disp);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--redup);margin-bottom:9px;display:flex;align-items:center;gap:10px}
+.pop-tab h3 button{margin-left:auto;border:1.5px solid var(--garis);border-radius:2px;padding:3px 10px;
+  font-size:11px;letter-spacing:0;text-transform:none;font-family:var(--body);color:var(--redup)}
+.pop-tab h3 button:hover{border-color:var(--merah);color:var(--maroon)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:5px 8px;text-align:right;border-bottom:1px solid #F0EADB;white-space:nowrap}
+th{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--redup);
+  font-weight:600;border-bottom:1.5px solid var(--ink);vertical-align:bottom;cursor:pointer;user-select:none}
+th:hover{color:var(--merah)}
+th.kiri,td.kiri{text-align:left}
+td.n{font-family:var(--num);font-variant-numeric:tabular-nums}
+td.no{font-family:var(--num);color:var(--abu);font-size:12px;width:26px;padding-right:2px}
+th[data-k="0"]{width:26px}
+td.kuat{font-weight:700;color:var(--warna,var(--ink))}
+td.bar{width:118px;padding-right:4px}
+td.bar span{display:block;height:11px;background:#EFE9D8}
+td.bar span i{display:block;height:100%;background:var(--warna,var(--abu))}
+tbody tr:hover td{background:#FFFDF2}
+tr.aku td{background:#FFF3D6}
+tr.aku td:first-child{box-shadow:inset 3px 0 0 var(--kuning)}
+tfoot td{border-top:1.5px solid var(--ink);border-bottom:none;font-weight:700;padding-top:7px}
+tfoot td.kiri{font-family:var(--disp);font-size:14px}
+.pop-catatan{font-size:11.5px;color:var(--abu);margin-top:9px;max-width:78ch}
+
+/* ---------- catatan ---------- */
+.catatan{max-width:1400px;margin:0 auto;padding:6px 22px 34px;font-size:12.5px;color:var(--redup)}
+.catatan h4{font-family:var(--disp);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);margin-bottom:6px}
+.catatan li{margin:4px 0 4px 17px}
+.peringatan{background:#FFF3D6;border-left:3px solid var(--kuning);padding:8px 12px;margin:0 0 12px;font-size:12.5px}
+
+@media(max-width:1800px){:root{--wk:204px;--wm:124px}
+  .kartu.akar{width:400px}}
+@media(max-width:1600px){:root{--wk:186px;--wm:112px}
+  .kartu.mini .k-nilai{font-size:19px}
+  .kartu.mini .k-pct.sorot{font-size:16px}
+  .kartu .k-nilai{font-size:26px}
+  .kartu .k-pct.sorot{font-size:21px}
+  .kartu.akar{width:380px}}
+@media(max-width:1440px){:root{--wk:168px;--wm:100px}
+  .kartu.mini .k-nilai{font-size:17px}
+  .kartu.mini .k-pct.sorot{font-size:15px}
+  .kartu.mini .k-nama{font-size:12.5px}
+  .kartu.akar{width:352px}
+  .kartu.akar .k-nilai{font-size:38px}}
+@media(max-width:1360px){:root{--wk:156px;--wm:92px}
+  .kartu.mini .k-nilai{font-size:16px}
+  .kartu.mini .k-nama{font-size:12px}
+  .kartu.mini .k-sub{font-size:9.5px}}
+@media(max-width:1280px){:root{--wk:146px;--wm:86px}
+  .kartu{padding:10px 10px 11px}
+  .kartu.akar{width:330px}}
+@media(max-width:900px){
+  .baris,.baris.rapat{flex-direction:column;align-items:stretch;gap:0}
+  .kol{padding-top:0;padding-left:15px;align-items:stretch;margin-top:9px}
+  .kol::before{top:26px;left:0;right:auto;width:13px;border-top:2px solid var(--garis)}
+  .kol::after{left:0;top:-9px;height:35px}
+  .kol:first-child::before,.kol:last-child::before{left:0;right:auto}
+  .satelit .kol{padding-left:15px;margin-top:9px}
+  .kartu,.kartu.akar,.kartu.mini{width:auto;max-width:none;height:auto;display:block}
+  .kol,.kol.mini{min-width:0;flex:1 1 auto}
+  .kartu.mini{padding:11px 13px 12px}
+  .kartu.mini .k-nama,.kartu.mini .k-sub{min-height:0}
+  .kartu.mini .k-nama{font-size:16px}
+  .kartu.mini .k-nilai{font-size:26px}
+  .kartu.mini .k-atas{display:flex;margin-bottom:5px}
+  .kartu.mini .k-unit{margin-left:auto;font-size:10px}
+  .kartu.mini .k-delta{margin-top:6px;padding-top:0}
+  .pohon-in{width:auto;min-width:0;padding:0}
+  .band-in{min-width:0;padding:0 16px}
+  .band .baris{gap:0}
+  .band .kol{padding-top:0}
+  .satelit .kol{flex:1 1 auto}
+  .sambung{height:16px}
+  .sambung svg{display:none}
+  .kol{flex:1 1 auto}
+  .batang{height:0}
+  .pita{justify-content:flex-start}
+  .k-tag{left:14px;transform:none}
+  .pop-ket{grid-template-columns:1fr;gap:16px}
+  .tirai{padding:0}
+  .pop{width:100%}
+  .pop-tab{padding:14px 12px 20px;overflow-x:auto}
+  .kop h1{font-size:22px}
+  .kanvas{padding:14px 16px 22px}
+  .kendali-in,.kop-in,.catatan,.kunci{padding-left:16px;padding-right:16px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="kop">
+  <div class="kop-in">
+    <div>
+      <div class="eyebrow">Sensus Ekonomi 2026 &middot; Pokja TI</div>
+      <h1>Struktur Progres Pendataan</h1>
+      <p class="tagline">Dibaca dari atas ke bawah. Setiap angka tahu induknya. Klik kartu mana pun untuk membuka tabel 15 kabupaten/kota.</p>
+    </div>
+    <div class="kop-kanan">
+      <div><b>BPS Provinsi Lampung</b></div>
+      <div id="stempel">&nbsp;</div>
+    </div>
+  </div>
+</header>
+
+<div class="kendali">
+  <div class="kendali-in">
+    <span class="lbl">Wilayah</span>
+    <select class="wil" id="wil" aria-label="Pilih wilayah"></select>
+    <div class="kanan">
+      <button class="tbl" id="btnPita" aria-pressed="false">Pita persamaan</button>
+      <button class="tbl" id="btnRinci" aria-pressed="false">Rincian kartu</button>
+      <button class="tbl" id="btnSemua" aria-pressed="true">Semua cabang terbuka</button>
+    </div>
+  </div>
+</div>
+
+<div class="kunci">
+  <i><span class="sw"></span> Garis penuh &mdash; pecahan dari induk, jumlahnya pas</i>
+  <i><span class="sw putus"></span> Garis putus &mdash; satuan berbeda, tidak menambah induk</i>
+  <i><b style="color:var(--ink)">Dua persen tiap kartu:</b>&nbsp;persen besar = persen resmi FASIH beserta penyebutnya; baris kecil di bawah bar = porsi terhadap kartu induk</i>
+</div>
+
+<main class="kanvas" id="pohon"></main>
+<div class="sambung" id="sambung" hidden></div>
+<section class="band" id="band" hidden></section>
+<footer class="catatan" id="catatan"></footer>
+
+<div class="tirai" id="tirai" hidden role="dialog" aria-modal="true" aria-labelledby="popJudul">
+  <div class="pop" id="pop"></div>
+</div>
+
+<script>
+const P = {"rows":{"18":{"nama":"LAMPUNG","pre_assign":3491482,"baru_assign":787910,"tot_assign":4279392,"verif":3712619,"responden":2242089,"draft":185587,"open":381186,"nihil":1470530,"pre_usaha":760551,"bku":192716,"force":45691,"usaha_unit":238407,"ub":1232,"um":824,"umk":189702,"unk":958,"pre_ub":1529,"pre_um":8011,"pre_umk":751011,"pre_uk":2153713,"uk_ok":996779,"uk_baru":697407,"uk":1694186,"usaha_all":1886902,"pre_usaha_all":2914264,"pre_kel":2730931,"kel_ok":1703096,"kel_baru":300586,"kel":2003682,"ak_bersama":6015101,"ak_baru":103984,"ak":6119085,"kk_bangunan":957,"kk_didata":67,"p_verif":106.33,"p_responden":64.22,"p_draft":5.32,"p_bku":25.34,"p_force":6.01,"p_ub":80.58,"p_um":10.29,"p_umk":25.26,"p_uk":78.66,"p_usaha_all":64.75,"p_kel":73.37,"p_kelok":62.36,"p_kk":7.0},"1801":{"nama":"LAMPUNG BARAT","pre_assign":97072,"baru_assign":24727,"tot_assign":121799,"verif":119686,"responden":81502,"draft":1628,"open":485,"nihil":38184,"pre_usaha":11927,"bku":4035,"force":177,"usaha_unit":4212,"ub":29,"um":59,"umk":3934,"unk":13,"pre_ub":23,"pre_um":151,"pre_umk":11753,"pre_uk":103485,"uk_ok":59867,"uk_baru":30624,"uk":90491,"usaha_all":94526,"pre_usaha_all":115412,"pre_kel":85145,"kel_ok":66462,"kel_baru":10828,"kel":77290,"ak_bersama":242541,"ak_baru":2834,"ak":245375,"kk_bangunan":8,"kk_didata":0,"p_verif":123.3,"p_responden":83.96,"p_draft":1.68,"p_bku":33.83,"p_force":1.48,"p_ub":126.09,"p_um":39.07,"p_umk":33.47,"p_uk":87.44,"p_usaha_all":81.9,"p_kel":90.77,"p_kelok":78.06,"p_kk":0.0},"1802":{"nama":"TANGGAMUS","pre_assign":230430,"baru_assign":55540,"tot_assign":285970,"verif":242495,"responden":153038,"draft":16959,"open":26516,"nihil":89457,"pre_usaha":57473,"bku":9961,"force":5599,"usaha_unit":15560,"ub":57,"um":12,"umk":9831,"unk":61,"pre_ub":113,"pre_um":77,"pre_umk":57283,"pre_uk":171893,"uk_ok":74082,"uk_baru":56147,"uk":130229,"usaha_all":140190,"pre_usaha_all":229366,"pre_kel":172957,"kel_ok":112944,"kel_baru":24534,"kel":137478,"ak_bersama":419893,"ak_baru":5585,"ak":425478,"kk_bangunan":23,"kk_didata":1,"p_verif":105.24,"p_responden":66.41,"p_draft":7.36,"p_bku":17.33,"p_force":9.74,"p_ub":50.44,"p_um":15.58,"p_umk":17.16,"p_uk":75.76,"p_usaha_all":61.12,"p_kel":79.49,"p_kelok":65.3,"p_kk":4.35},"1803":{"nama":"LAMPUNG SELATAN","pre_assign":436272,"baru_assign":115689,"tot_assign":551961,"verif":449686,"responden":255444,"draft":27800,"open":74475,"nihil":194242,"pre_usaha":93538,"bku":17777,"force":2404,"usaha_unit":20181,"ub":150,"um":79,"umk":17454,"unk":94,"pre_ub":145,"pre_um":951,"pre_umk":92442,"pre_uk":201989,"uk_ok":71062,"uk_baru":60977,"uk":132039,"usaha_all":149816,"pre_usaha_all":295527,"pre_kel":342734,"kel_ok":195399,"kel_baru":39864,"kel":235263,"ak_bersama":715827,"ak_baru":12539,"ak":728366,"kk_bangunan":92,"kk_didata":3,"p_verif":103.07,"p_responden":58.55,"p_draft":6.37,"p_bku":19.01,"p_force":2.57,"p_ub":103.45,"p_um":8.31,"p_umk":18.88,"p_uk":65.37,"p_usaha_all":50.69,"p_kel":68.64,"p_kelok":57.01,"p_kk":3.26},"1804":{"nama":"LAMPUNG TIMUR","pre_assign":489941,"baru_assign":89919,"tot_assign":579860,"verif":499753,"responden":306444,"draft":22913,"open":57194,"nihil":193309,"pre_usaha":127104,"bku":29045,"force":13699,"usaha_unit":42744,"ub":96,"um":77,"umk":28682,"unk":190,"pre_ub":79,"pre_um":388,"pre_umk":126637,"pre_uk":347143,"uk_ok":164546,"uk_baru":119501,"uk":284047,"usaha_all":313092,"pre_usaha_all":474247,"pre_kel":362837,"kel_ok":232633,"kel_baru":31067,"kel":263700,"ak_bersama":746174,"ak_baru":14632,"ak":760806,"kk_bangunan":63,"kk_didata":0,"p_verif":102.0,"p_responden":62.55,"p_draft":4.68,"p_bku":22.85,"p_force":10.78,"p_ub":121.52,"p_um":19.85,"p_umk":22.65,"p_uk":81.82,"p_usaha_all":66.02,"p_kel":72.68,"p_kelok":64.12,"p_kk":0.0},"1805":{"nama":"LAMPUNG TENGAH","pre_assign":580719,"baru_assign":109878,"tot_assign":690597,"verif":594953,"responden":364692,"draft":33540,"open":62104,"nihil":230261,"pre_usaha":131144,"bku":33620,"force":7551,"usaha_unit":41171,"ub":145,"um":124,"umk":33197,"unk":154,"pre_ub":139,"pre_um":854,"pre_umk":130151,"pre_uk":416134,"uk_ok":198077,"uk_baru":128901,"uk":326978,"usaha_all":360598,"pre_usaha_all":547278,"pre_kel":449575,"kel_ok":285404,"kel_baru":38117,"kel":323521,"ak_bersama":945209,"ak_baru":19366,"ak":964575,"kk_bangunan":155,"kk_didata":4,"p_verif":102.45,"p_responden":62.8,"p_draft":5.78,"p_bku":25.64,"p_force":5.76,"p_ub":104.32,"p_um":14.52,"p_umk":25.51,"p_uk":78.58,"p_usaha_all":65.89,"p_kel":71.96,"p_kelok":63.48,"p_kk":2.58},"1806":{"nama":"LAMPUNG UTARA","pre_assign":263315,"baru_assign":51638,"tot_assign":314953,"verif":287860,"responden":163951,"draft":8414,"open":18679,"nihil":123909,"pre_usaha":63919,"bku":11731,"force":4377,"usaha_unit":16108,"ub":59,"um":62,"umk":11570,"unk":40,"pre_ub":75,"pre_um":388,"pre_umk":63456,"pre_uk":128332,"uk_ok":58832,"uk_baru":46446,"uk":105278,"usaha_all":117009,"pre_usaha_all":192251,"pre_kel":199396,"kel_ok":125903,"kel_baru":21940,"kel":147843,"ak_bersama":457229,"ak_baru":5956,"ak":463185,"kk_bangunan":20,"kk_didata":2,"p_verif":109.32,"p_responden":62.26,"p_draft":3.2,"p_bku":18.35,"p_force":6.85,"p_ub":78.67,"p_um":15.98,"p_umk":18.23,"p_uk":82.04,"p_usaha_all":60.86,"p_kel":74.15,"p_kelok":63.14,"p_kk":10.0},"1807":{"nama":"WAY KANAN","pre_assign":187422,"baru_assign":44899,"tot_assign":232321,"verif":199643,"responden":119497,"draft":10226,"open":22452,"nihil":80146,"pre_usaha":41330,"bku":7393,"force":3774,"usaha_unit":11167,"ub":44,"um":15,"umk":7280,"unk":54,"pre_ub":35,"pre_um":129,"pre_umk":41166,"pre_uk":128720,"uk_ok":57927,"uk_baru":46630,"uk":104557,"usaha_all":111950,"pre_usaha_all":170050,"pre_kel":146092,"kel_ok":92485,"kel_baru":15845,"kel":108330,"ak_bersama":324858,"ak_baru":4168,"ak":329026,"kk_bangunan":35,"kk_didata":0,"p_verif":106.52,"p_responden":63.76,"p_draft":5.46,"p_bku":17.89,"p_force":9.13,"p_ub":125.71,"p_um":11.63,"p_umk":17.68,"p_uk":81.23,"p_usaha_all":65.83,"p_kel":74.15,"p_kelok":63.31,"p_kk":0.0},"1808":{"nama":"TULANG BAWANG","pre_assign":154763,"baru_assign":38149,"tot_assign":192912,"verif":165353,"responden":97914,"draft":9726,"open":17833,"nihil":67439,"pre_usaha":19507,"bku":7992,"force":182,"usaha_unit":8174,"ub":48,"um":17,"umk":7915,"unk":12,"pre_ub":51,"pre_um":361,"pre_umk":19095,"pre_uk":114275,"uk_ok":46422,"uk_baru":29534,"uk":75956,"usaha_all":83948,"pre_usaha_all":133782,"pre_kel":135256,"kel_ok":74872,"kel_baru":14868,"kel":89740,"ak_bersama":265243,"ak_baru":7652,"ak":272895,"kk_bangunan":94,"kk_didata":0,"p_verif":106.84,"p_responden":63.27,"p_draft":6.28,"p_bku":40.97,"p_force":0.93,"p_ub":94.12,"p_um":4.71,"p_umk":41.45,"p_uk":66.47,"p_usaha_all":62.75,"p_kel":66.35,"p_kelok":55.36,"p_kk":0.0},"1809":{"nama":"PESAWARAN","pre_assign":170543,"baru_assign":44352,"tot_assign":214895,"verif":201914,"responden":137004,"draft":6641,"open":6340,"nihil":64910,"pre_usaha":18385,"bku":11321,"force":381,"usaha_unit":11702,"ub":53,"um":48,"umk":11179,"unk":41,"pre_ub":55,"pre_um":132,"pre_umk":18198,"pre_uk":154311,"uk_ok":78067,"uk_baru":35057,"uk":113124,"usaha_all":124445,"pre_usaha_all":172696,"pre_kel":152158,"kel_ok":105329,"kel_baru":19973,"kel":125302,"ak_bersama":377374,"ak_baru":7361,"ak":384735,"kk_bangunan":151,"kk_didata":36,"p_verif":118.39,"p_responden":80.33,"p_draft":3.89,"p_bku":61.58,"p_force":2.07,"p_ub":96.36,"p_um":36.36,"p_umk":61.43,"p_uk":73.31,"p_usaha_all":72.06,"p_kel":82.35,"p_kelok":69.22,"p_kk":23.84},"1810":{"nama":"PRINGSEWU","pre_assign":157837,"baru_assign":33241,"tot_assign":191078,"verif":167125,"responden":118042,"draft":11564,"open":12389,"nihil":49083,"pre_usaha":22096,"bku":12848,"force":343,"usaha_unit":13191,"ub":41,"um":12,"umk":12724,"unk":71,"pre_ub":32,"pre_um":9,"pre_umk":22055,"pre_uk":117647,"uk_ok":53415,"uk_baru":30281,"uk":83696,"usaha_all":96544,"pre_usaha_all":139743,"pre_kel":135741,"kel_ok":92971,"kel_baru":11880,"kel":104851,"ak_bersama":309790,"ak_baru":4527,"ak":314317,"kk_bangunan":35,"kk_didata":1,"p_verif":105.88,"p_responden":74.79,"p_draft":7.33,"p_bku":58.15,"p_force":1.55,"p_ub":128.13,"p_um":133.33,"p_umk":57.69,"p_uk":71.14,"p_usaha_all":69.09,"p_kel":77.24,"p_kelok":68.49,"p_kk":2.86},"1811":{"nama":"MESUJI","pre_assign":86207,"baru_assign":26586,"tot_assign":112793,"verif":113088,"responden":73876,"draft":1121,"open":0,"nihil":39212,"pre_usaha":11092,"bku":6862,"force":96,"usaha_unit":6958,"ub":30,"um":18,"umk":6802,"unk":12,"pre_ub":27,"pre_um":57,"pre_umk":11008,"pre_uk":80703,"uk_ok":37473,"uk_baru":22424,"uk":59897,"usaha_all":66759,"pre_usaha_all":91795,"pre_kel":75115,"kel_ok":55020,"kel_baru":11898,"kel":66918,"ak_bersama":193950,"ak_baru":4765,"ak":198715,"kk_bangunan":29,"kk_didata":1,"p_verif":131.18,"p_responden":85.7,"p_draft":1.3,"p_bku":61.86,"p_force":0.87,"p_ub":111.11,"p_um":31.58,"p_umk":61.79,"p_uk":74.22,"p_usaha_all":72.73,"p_kel":89.09,"p_kelok":73.25,"p_kk":3.45},"1812":{"nama":"TULANG BAWANG BARAT","pre_assign":109078,"baru_assign":29857,"tot_assign":138935,"verif":135933,"responden":91408,"draft":2541,"open":461,"nihil":44525,"pre_usaha":9909,"bku":8340,"force":169,"usaha_unit":8509,"ub":26,"um":21,"umk":8281,"unk":12,"pre_ub":23,"pre_um":66,"pre_umk":9820,"pre_uk":101461,"uk_ok":56528,"uk_baru":31813,"uk":88341,"usaha_all":96681,"pre_usaha_all":111370,"pre_kel":99169,"kel_ok":70688,"kel_baru":12211,"kel":82899,"ak_bersama":238637,"ak_baru":5259,"ak":243896,"kk_bangunan":62,"kk_didata":5,"p_verif":124.62,"p_responden":83.8,"p_draft":2.33,"p_bku":84.17,"p_force":1.71,"p_ub":113.04,"p_um":31.82,"p_umk":84.33,"p_uk":87.07,"p_usaha_all":86.81,"p_kel":83.59,"p_kelok":71.28,"p_kk":8.06},"1813":{"nama":"PESISIR BARAT","pre_assign":47152,"baru_assign":13917,"tot_assign":61069,"verif":60497,"responden":43660,"draft":530,"open":42,"nihil":16837,"pre_usaha":5380,"bku":2886,"force":66,"usaha_unit":2952,"ub":10,"um":2,"umk":2874,"unk":0,"pre_ub":10,"pre_um":0,"pre_umk":5370,"pre_uk":51280,"uk_ok":27359,"uk_baru":13356,"uk":40715,"usaha_all":43601,"pre_usaha_all":56660,"pre_kel":41772,"kel_ok":33471,"kel_baru":7237,"kel":40708,"ak_bersama":134266,"ak_baru":1726,"ak":135992,"kk_bangunan":13,"kk_didata":0,"p_verif":128.3,"p_responden":92.59,"p_draft":1.12,"p_bku":53.64,"p_force":1.23,"p_ub":100.0,"p_um":0.0,"p_umk":53.52,"p_uk":79.4,"p_usaha_all":76.95,"p_kel":97.45,"p_kelok":80.13,"p_kk":0.0},"1871":{"nama":"BANDAR LAMPUNG","pre_assign":410238,"baru_assign":95148,"tot_assign":505386,"verif":402317,"responden":191570,"draft":27314,"open":75755,"nihil":210747,"pre_usaha":130760,"bku":22281,"force":6593,"usaha_unit":28874,"ub":397,"um":215,"umk":21503,"unk":166,"pre_ub":682,"pre_um":4256,"pre_umk":125822,"pre_uk":12551,"uk_ok":2766,"uk_baru":37380,"uk":40146,"usaha_all":62427,"pre_usaha_all":143311,"pre_kel":279478,"kel_ok":127115,"kel_baru":35581,"kel":162696,"ak_bersama":532818,"ak_baru":6560,"ak":539378,"kk_bangunan":117,"kk_didata":2,"p_verif":98.07,"p_responden":46.7,"p_draft":6.66,"p_bku":17.04,"p_force":5.04,"p_ub":58.21,"p_um":5.05,"p_umk":17.09,"p_uk":319.86,"p_usaha_all":43.56,"p_kel":58.21,"p_kelok":45.48,"p_kk":1.71},"1872":{"nama":"METRO","pre_assign":70493,"baru_assign":14370,"tot_assign":84863,"verif":72316,"responden":44047,"draft":4670,"open":7877,"nihil":28269,"pre_usaha":16987,"bku":6624,"force":280,"usaha_unit":6904,"ub":47,"um":63,"umk":6476,"unk":38,"pre_ub":40,"pre_um":192,"pre_umk":16755,"pre_uk":23789,"uk_ok":10356,"uk_baru":8336,"uk":18692,"usaha_all":25316,"pre_usaha_all":40776,"pre_kel":53506,"kel_ok":32400,"kel_baru":4743,"kel":37143,"ak_bersama":111292,"ak_baru":1054,"ak":112346,"kk_bangunan":60,"kk_didata":12,"p_verif":102.59,"p_responden":62.48,"p_draft":6.62,"p_bku":38.99,"p_force":1.65,"p_ub":117.5,"p_um":32.81,"p_umk":38.65,"p_uk":78.57,"p_usaha_all":62.09,"p_kel":69.42,"p_kelok":60.55,"p_kk":20.0}},"kodes":["1801","1802","1803","1804","1805","1806","1807","1808","1809","1810","1811","1812","1813","1871","1872"],"nodes":[{"id":"assign","parent":null,"label":"Assignment SE2026","field":"tot_assign","base":null,"unit":"assignment","tipe":"akar","warna":"maroon","ket":"Seluruh tugas pencacahan di FASIH: prelist awal dari basis data pusat ditambah assignment baru yang dibentuk petugas di lapangan.","rumus":"prelist awal + baru","parts":[["Prelist awal","pre_assign"],["Baru dari lapangan","baru_assign"]],"sumber":"Progres Pendataan kol. (3) + (4)","turunan":"Penjumlahan dua kolom. Tidak ada satu kolom tunggal di ekspor yang memuat angka ini."},{"id":"capaian","parent":"assign","label":"Verifikasi","field":"verif","base":"tot_assign","unit":"assignment","tipe":"bagi","warna":"hijau","ket":"Assignment yang sudah disubmit petugas dan lolos verifikasi pengawas. Inilah pekerjaan yang benar-benar tuntas.","rumus":"hasil verifikasi ÷ total assignment","sumber":"Progres Pendataan kol. (5)","resmi":{"p":"p_verif","b":"pre_assign","bl":"prelist assignment","kol":"Progres Pendataan kol. (6)"}},{"id":"draft","parent":"assign","label":"Draft","field":"draft","base":"tot_assign","unit":"assignment","tipe":"bagi","warna":"kuning","neg":1,"ket":"Assignment yang sudah dibuka dan sedang diisi tetapi belum disubmit. Pekerjaan menggantung yang perlu didorong tuntas.","rumus":"responden sedang didata ÷ total assignment","sumber":"Progres Pendataan kol. (9)","resmi":{"p":"p_draft","b":"pre_assign","bl":"prelist assignment","kol":"Progres Pendataan kol. (10)"}},{"id":"open","parent":"assign","label":"Open","field":"open","base":"tot_assign","unit":"assignment","tipe":"bagi","warna":"merah","neg":1,"ket":"Assignment yang belum disentuh sama sekali. Sisa beban murni yang masih harus dikerjakan.","rumus":"total assignment − verifikasi − draft","sumber":"hitungan turunan","turunan":"Ekspor FASIH tidak memuat kolom Open. Angka ini sisa dari total assignment setelah dikurangi verifikasi dan draft."},{"id":"responden","parent":"capaian","label":"Responden Didata","field":"responden","base":"verif","unit":"responden","tipe":"bagi","warna":"hijau","ket":"Assignment terverifikasi yang menghasilkan responden nyata: keluarga ditemukan atau baru, dan usaha yang berhasil dicacah.","rumus":"responden didata ÷ verifikasi","sumber":"Progres Pendataan kol. (7)","resmi":{"p":"p_responden","b":"pre_assign","bl":"prelist assignment","kol":"Progres Pendataan kol. (8)"}},{"id":"nihil","parent":"capaian","label":"Hasil Nihil","field":"nihil","base":"verif","unit":"assignment","tipe":"bagi","warna":"abu","neg":1,"ket":"Sudah diverifikasi tetapi tidak menghasilkan responden: usaha tutup, pindah tak tertelusuri, ganda, tidak ditemukan, keluarga meninggal atau tidak eligible. Pekerjaan tetap dihitung selesai.","rumus":"verifikasi − responden didata","sumber":"hitungan turunan","turunan":"Ekspor FASIH tidak memuat kolom ini. Angka ini selisih antara hasil verifikasi dan responden didata."},{"id":"usaha","parent":"responden","label":"Usaha","field":"usaha_unit","base":"responden","unit":"usaha","tipe":"bagi","warna":"biru","ket":"Responden berupa unit usaha yang dicacah lewat assignment usaha, mencakup usaha BKU ditambah usaha yang diklaim sebagai usaha keluarga (force submit).","rumus":"usaha BKU + force submit","parts":[["Usaha BKU","bku"],["Force submit","force"]],"sumber":"Usaha/Perusahaan kol. (35) + (36)","turunan":"Penjumlahan dua kolom status. Ekspor tidak memuat gabungan ini dalam satu kolom.","resmi":{"p":"p_bku","f":"bku","fl":"Usaha BKU","b":"pre_usaha","bl":"prelist usaha","kol":"Usaha/Perusahaan kol. (37)"}},{"id":"keluarga","parent":"responden","label":"Keluarga","field":"kel","base":"responden","unit":"keluarga","tipe":"bagi","warna":"oranye","ket":"Responden berupa keluarga hasil pemutakhiran: keluarga prelist yang ditemukan ditambah keluarga baru yang dijaring petugas.","rumus":"keluarga ditemukan + keluarga baru","parts":[["Ditemukan","kel_ok"],["Baru","kel_baru"]],"sumber":"Pemutakhiran Keluarga kol. (15)","resmi":{"p":"p_kel","b":"pre_kel","bl":"prelist awal keluarga","kol":"Keluarga kol. (16)"}},{"id":"ub","parent":"usaha","label":"UB","sub":"Usaha Besar","field":"ub","base":"usaha_unit","unit":"usaha","tipe":"bagi","warna":"maroon","ket":"Usaha Besar hasil pencacahan. Jumlahnya bisa melampaui prelist karena ada usaha yang naik kelas setelah dicacah.","rumus":"UB tercacah ÷ usaha","sumber":"Skala Usaha kol. (7)","resmi":{"p":"p_ub","b":"pre_ub","bl":"prelist UB","kol":"Skala Usaha kol. (8)"}},{"id":"um","parent":"usaha","label":"UM","sub":"Usaha Menengah","field":"um","base":"usaha_unit","unit":"usaha","tipe":"bagi","warna":"biru","ket":"Usaha Menengah hasil pencacahan.","rumus":"UM tercacah ÷ usaha","sumber":"Skala Usaha kol. (9)","resmi":{"p":"p_um","b":"pre_um","bl":"prelist UM","kol":"Skala Usaha kol. (10)"}},{"id":"umk","parent":"usaha","label":"UMK","sub":"Usaha Mikro Kecil","field":"umk","base":"usaha_unit","unit":"usaha","tipe":"bagi","warna":"biru","ket":"Usaha Mikro dan Kecil hasil pencacahan. Tulang punggung jumlah usaha di Lampung.","rumus":"UMK tercacah ÷ usaha","sumber":"Skala Usaha kol. (11)","resmi":{"p":"p_umk","b":"pre_umk","bl":"prelist UMK","kol":"Skala Usaha kol. (12)"}},{"id":"unk","parent":"usaha","label":"Usaha Lainnya","sub":"Skala belum terklasifikasi","field":"unk","base":"usaha_unit","unit":"usaha","tipe":"bagi","warna":"abu","neg":1,"ket":"Usaha yang sudah tercacah tetapi skalanya belum bisa ditentukan karena isian omzet, aset, atau tenaga kerja belum lengkap. Sasaran perbaikan kualitas.","rumus":"tidak dapat diklasifikasikan ÷ usaha","sumber":"Skala Usaha kol. (13)","turunan":"Ekspor memuat jumlahnya tetapi tidak memuat kolom persentase untuk rincian ini."},{"id":"force","parent":"usaha","label":"Usaha Keluarga","sub":"Force submit dari assignment usaha","field":"force","base":"usaha_unit","unit":"usaha","tipe":"bagi","warna":"kuning","ket":"Assignment usaha yang setelah dikunjungi ternyata berskala usaha keluarga, lalu disubmit paksa dan dialihkan ke jalur keluarga.","rumus":"force submit ÷ usaha","sumber":"Usaha/Perusahaan kol. (34)","resmi":{"p":"p_force","b":"pre_usaha","bl":"prelist usaha","kol":"Usaha/Perusahaan kol. (35)"}},{"id":"uk","parent":"usaha","label":"Usaha dalam Keluarga","field":"uk","base":null,"unit":"usaha","tipe":"tautan","warna":"biru","ket":"Usaha yang dicatat sebagai roster di dalam assignment keluarga, bukan assignment usaha tersendiri. Angka ini tidak menambah jumlah assignment, tetapi menambah jumlah usaha.","rumus":"usaha dalam keluarga ditemukan + baru","parts":[["Ditemukan","uk_ok"],["Baru","uk_baru"]],"tautan_ket":"Tercatat di dalam assignment keluarga","sumber":"Usaha Keluarga kol. (16)","resmi":{"p":"p_uk","b":"pre_uk","bl":"prelist usaha keluarga","kol":"Usaha Keluarga kol. (17)"}},{"id":"kelok","parent":"keluarga","label":"Keluarga Ditemukan","field":"kel_ok","base":"kel","unit":"keluarga","tipe":"bagi","warna":"oranye","ket":"Keluarga prelist yang berhasil ditemukan dan dimutakhirkan di lapangan.","rumus":"ditemukan ÷ keluarga","sumber":"Pemutakhiran Keluarga kol. (4)","resmi":{"p":"p_kelok","b":"pre_kel","bl":"prelist awal keluarga","kol":"Keluarga kol. (5)"}},{"id":"kelbaru","parent":"keluarga","label":"Keluarga Baru","field":"kel_baru","base":"kel","unit":"keluarga","tipe":"bagi","warna":"kuning","ket":"Keluarga yang belum ada di prelist dan ditambahkan petugas saat pemutakhiran.","rumus":"keluarga baru ÷ keluarga","sumber":"Pemutakhiran Keluarga kol. (6)","turunan":"Ekspor memuat jumlahnya tetapi tidak memuat kolom persentase untuk rincian ini."},{"id":"ak","parent":"keluarga","label":"Anggota Keluarga","field":"ak","base":null,"unit":"jiwa","tipe":"tautan","warna":"oranye","ket":"Jumlah jiwa di dalam keluarga yang terdata. Satuannya orang, bukan keluarga, sehingga wajar jauh lebih besar daripada jumlah keluarga.","rumus":"tinggal bersama + anggota baru","parts":[["Tinggal bersama","ak_bersama"],["Anggota baru","ak_baru"]],"tautan_ket":"Isi dari setiap keluarga","rasio":["kel","jiwa per keluarga"],"sumber":"Anggota Keluarga kol. (10)","turunan":"Ekspor tidak memuat kolom persentase untuk anggota keluarga."},{"id":"kkhusus","parent":"keluarga","label":"Keluarga Khusus","field":"kk_didata","base":null,"unit":"bangunan","tipe":"tautan","warna":"merah","ket":"Bangunan tempat tinggal khusus seperti asrama, panti, dan lembaga pemasyarakatan. Didata terpisah lewat dokumen K1 dengan satuan bangunan.","rumus":"bangunan didata ÷ bangunan hasil pendataan PPL","tautan_ket":"Jalur K1, satuan bangunan","sumber":"Keluarga Khusus kol. (4)","resmi":{"p":"p_kk","b":"kk_bangunan","bl":"bangunan hasil listing PPL","kol":"Keluarga Khusus kol. (5)"}}],"stempel":"Sumber FASIH Pendataan SE2026<br>Pendataan 17 Aug 2026 08.20 &middot; Keluarga 17 Aug 2026 08.20<br>Halaman disusun 17 Aug 2026 08.21"};
+const R = P.rows, KODES = P.kodes, NODES = P.nodes;
+const byId = {}; NODES.forEach(n => byId[n.id] = n);
+const anak = {}; NODES.forEach(n => { if (n.parent) (anak[n.parent] = anak[n.parent] || []).push(n.id); });
+const WARNA = {maroon:'#9A0501',merah:'#ED1C24',kuning:'#FEBD26',hijau:'#73B24A',biru:'#2892C6',oranye:'#C45824',abu:'#8A8A8A'};
+
+let wil = '18', showPita = false, showRinci = false, lipat = new Set(), aktif = null, balik = null, urut = null;
+
+const nf = v => (v === null || v === undefined || isNaN(v)) ? '\u2013' : Math.round(v).toLocaleString('id-ID');
+const pf = v => (v === null || v === undefined || !isFinite(v)) ? '\u2013'
+  : v.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}) + '%';
+const val = (k, f) => R[k][f];
+const basisField = n => n.base || (n.resmi ? n.resmi.b : null);
+const rasio = (k, n) => { const b = basisField(n); return (b && val(k,b)) ? val(k,n.field)/val(k,b)*100 : null; };
+const pResmi = (k, n) => n.resmi ? val(k, n.resmi.p) : null;
+const promo  = n => !!(n.resmi && !(n.resmi.f && n.resmi.f !== n.field));   // persen FASIH jadi sorotan
+const pUtama = (k, n) => promo(n) ? pResmi(k, n) : rasio(k, n);
+const vResmi = (k, n) => n.resmi ? val(k, n.resmi.f || n.field) : null;
+
+/* ================= kendali ================= */
+function initKendali(){
+  const s = document.getElementById('wil');
+  s.innerHTML = '<option value="18">Provinsi Lampung (gabungan 15 kab/kota)</option>'
+    + KODES.map(k => `<option value="${k}">${k} \u2014 ${R[k].nama}</option>`).join('');
+  s.value = wil;
+  s.onchange = e => { wil = e.target.value; gambar(); if (aktif) isiPop(aktif); };
+
+  const sakelar = (id, get, set) => { const b = document.getElementById(id);
+    b.onclick = () => { set(!get()); b.setAttribute('aria-pressed', get()); gambar(); }; };
+  sakelar('btnPita', () => showPita, v => showPita = v);
+  sakelar('btnRinci', () => showRinci, v => showRinci = v);
+
+  document.getElementById('btnSemua').onclick = () => {
+    if (lipat.size) lipat.clear(); else NODES.forEach(n => { if (anak[n.id]) lipat.add(n.id); });
+    segarkan(); gambar();
+  };
+  document.getElementById('stempel').innerHTML = P.stempel ||
+    'Sumber FASIH Pendataan SE2026';
+}
+function segarkan(){
+  const b = document.getElementById('btnSemua'), buka = lipat.size === 0;
+  b.setAttribute('aria-pressed', buka);
+  b.textContent = buka ? 'Semua cabang terbuka' : 'Buka semua cabang';
+}
+
+/* ================= kartu ================= */
+function kartu(id, ragam){
+  const n = byId[id], w = WARNA[n.warna], v = val(wil, n.field);
+  const mini = ragam === 'mini', akar = ragam === 'akar';
+  const utama = pUtama(wil, n), pb = utama;
+  const el = document.createElement('button');
+  el.className = 'kartu' + (akar ? ' akar' : '') + (mini ? ' mini' : '') + (n.tipe === 'tautan' ? ' tautan' : '');
+  el.style.setProperty('--warna', w);
+  el.setAttribute('aria-haspopup', 'dialog');
+  el.dataset.id = id;
+  el.onclick = () => bukaPop(id, el);
+
+  let h = '';
+  if (n.tipe === 'tautan' && !mini) h += `<span class="k-tag">${n.tautan_ket || 'satuan lain'}</span>`;
+  h += `<div class="k-atas"><span class="k-nama">${n.label}</span><span class="k-unit">${n.unit}</span></div>`;
+  const sub = n.sub || (mini && n.tipe === 'tautan' ? n.tautan_ket : '');
+  if (sub || mini) h += `<div class="k-sub">${sub || ''}</div>`;
+  h += `<div class="k-baris"><span class="k-nilai">${nf(v)}</span>${
+    utama !== null ? `<span class="k-pct sorot">${pf(utama)}</span>` : ''}</div>`;
+
+  if (promo(n)) h += `<div class="k-basis"><span class="cap">FASIH</span>dari ${n.resmi.bl} ${nf(val(wil, n.resmi.b))}</div>`;
+  else if (n.base) h += `<div class="k-basis">dari ${nf(val(wil, n.base))} ${byId[n.parent].unit}</div>`;
+
+  if (pb !== null) h += `<div class="k-bar"><span style="width:${Math.max(0, Math.min(100, pb))}%"></span></div>`;
+
+  if (promo(n) && n.base) h += `<div class="k-kedua"><b>${pf(rasio(wil, n))}</b> porsi dari ${nf(val(wil, n.base))} ${byId[n.parent].unit}</div>`;
+  else if (n.resmi && !promo(n)) h += `<div class="k-kedua"><span class="cap">FASIH</span>${n.resmi.fl} ${nf(vResmi(wil, n))} \u00b7 <b>${pf(pResmi(wil, n))}</b> dari ${n.resmi.bl} ${nf(val(wil, n.resmi.b))}</div>`;
+  else if (n.turunan && !mini) h += `<div class="k-turunan">Angka turunan, bukan kolom langsung di ekspor.</div>`;
+
+  if ((showRinci || akar) && !mini && n.parts) h += `<div class="k-parts">` + n.parts.map(
+    ([lb, f]) => `<div>${lb}<b>${nf(val(wil, f))}</b></div>`).join('') + `</div>`;
+  if (n.rasio && val(wil, n.rasio[0]))
+    h += `<div class="k-basis">${(v/val(wil, n.rasio[0])).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})} ${n.rasio[1]}</div>`;
+
+  if (showRinci && wil !== '18' && utama !== null){
+    const pp = pUtama('18', n), d = utama - pp;
+    const baik = n.neg ? d < 0 : d > 0, kls = Math.abs(d) < 1.5 ? 'rata' : (baik ? 'baik' : 'buruk');
+    h += `<div class="k-delta ${kls}">` + (Math.abs(d) < 1.5 ? 'setara provinsi'
+      : (d > 0 ? '\u25b2 ' : '\u25bc ') + pf(Math.abs(d)) + (d > 0 ? ' di atas' : ' di bawah') + ' provinsi') + `</div>`;
+  }
+  el.innerHTML = h;
+  return el;
+}
+
+/* ================= pita ================= */
+function pita(pid, kecil){
+  const kids = (anak[pid] || []).filter(k => byId[k].tipe === 'bagi');
+  if (!showPita || kids.length < 2) return null;
+  const jum = kids.reduce((a, k) => a + val(wil, byId[k].field), 0);
+  const ind = val(wil, byId[pid].field), pas = jum === ind;
+  const d = document.createElement('div'); d.className = 'pita' + (kecil ? ' kecil' : '');
+  d.innerHTML = `<div class="pita-in">` + kids.map((k, i) => (i ? '<span class="op">+</span>' : '')
+    + `<span class="trm" title="${byId[k].label}">${nf(val(wil, byId[k].field))}</span>`).join('')
+    + `<span class="op">=</span><span class="hasil">${nf(ind)}</span>`
+    + `<span class="cek ${pas ? '' : 'beda'}">${pas ? 'jumlahnya pas' : 'selisih ' + nf(Math.abs(jum - ind))}</span></div>`;
+  return d;
+}
+
+/* ================= pohon ================= */
+function tombol(id){
+  const kids = anak[id] || []; if (!kids.length) return null;
+  const tutup = lipat.has(id);
+  const b = document.createElement('button'); b.className = 'buka';
+  b.setAttribute('aria-expanded', !tutup);
+  b.innerHTML = tutup ? `Buka <b>${kids.length}</b> rincian \u25be` : 'Tutup rincian \u25b4';
+  b.onclick = e => { e.stopPropagation(); tutup ? lipat.delete(id) : lipat.add(id); segarkan(); gambar(); };
+  return b;
+}
+
+function dalamnya(id){ let d = 0, c = byId[id].parent; while (c){ d++; c = byId[c].parent; } return d; }
+function terlihat(id){ let c = byId[id].parent; while (c){ if (lipat.has(c)) return false; c = byId[c].parent; } return true; }
+
+let diBand = false;              // sedang menggambar isi band selebar layar
+const BATAS = 2;                 // pohon berhenti di tingkat ini, sisanya pindah ke band
+
+function bobot(id, dalam){
+  const kids = anak[id] || [];
+  if (!kids.length || lipat.has(id)) return 1;
+  if (!diBand && dalam >= BATAS) return 1;
+  if (diBand && dalam >= 3) return Math.max(kids.filter(k => byId[k].tipe === 'bagi').length,
+                                            kids.filter(k => byId[k].tipe === 'tautan').length, 1);
+  return kids.reduce((a, k) => a + bobot(k, dalam + 1), 0);
+}
+
+function barisKartu(ids, mini, dalam, slot){
+  const row = document.createElement('div'); row.className = 'baris' + (mini ? ' rapat' : '');
+  ids.forEach(k => {
+    const col = document.createElement('div'); col.className = 'kol' + (mini ? ' mini' : '');
+    if (!slot) col.style.flexGrow = mini ? 1 : bobot(k, dalam);
+    col.appendChild(kartu(k, mini ? 'mini' : null));
+    if (!mini){
+      const tg = tombol(k); if (tg) col.appendChild(tg);
+      if (!lipat.has(k)){ const sub = cabang(k, dalam + 1); if (sub) col.appendChild(sub); }
+    }
+    row.appendChild(col);
+  });
+  return row;
+}
+
+function cabang(pid, dalam){
+  const kids = anak[pid] || []; if (!kids.length) return null;
+  if (!diBand && dalam > BATAS) return null;          // dipindahkan ke band
+  const daun = dalam >= 4;
+  const tier = document.createElement('div'); tier.className = 'tier';
+  const bagi = kids.filter(k => byId[k].tipe === 'bagi');
+  const taut = kids.filter(k => byId[k].tipe === 'tautan');
+
+  const b1 = document.createElement('div'); b1.className = 'batang'; tier.appendChild(b1);
+  const pt = pita(pid, daun);
+  if (pt){ tier.appendChild(pt); const b2 = document.createElement('div'); b2.className = 'batang'; tier.appendChild(b2); }
+
+  if (!daun){ tier.appendChild(barisKartu(kids, false, dalam)); return tier; }
+
+  tier.style.setProperty('--slot', (100 / Math.max(bagi.length, 1)) + '%');
+  tier.appendChild(barisKartu(bagi, true, dalam));
+  if (taut.length){
+    const s = document.createElement('div'); s.className = 'satelit';
+    s.innerHTML = '<span class="sat-lbl">satuan lain \u00b7 tidak menambah induk</span>';
+    s.appendChild(barisKartu(taut, true, dalam, true));
+    tier.appendChild(s);
+  }
+  return tier;
+}
+
+/* garis siku dari kartu terakhir di pohon menuju band di bawahnya */
+function sambungkan(){
+  const s = document.getElementById('sambung');
+  if (s.hidden) return;
+  const asal = document.querySelector('.kartu[data-asal="1"]');
+  const baris = document.querySelector('#band .baris');
+  if (!asal || !baris){ s.innerHTML = ''; return; }
+  const w = s.getBoundingClientRect(), h = s.offsetHeight;
+  const x1 = Math.round(asal.getBoundingClientRect().left + asal.offsetWidth / 2 - w.left);
+  const kol = [...baris.children];
+  const c = k => k.getBoundingClientRect().left + k.offsetWidth / 2 - w.left;
+  const x2 = Math.round((c(kol[0]) + c(kol[kol.length - 1])) / 2);
+  const y = Math.round(h / 2);
+  s.innerHTML = `<svg width="100%" height="${h}" aria-hidden="true">
+    <path d="M${x1} 0 V${y} H${x2} V${h}" fill="none" stroke="#E3DBC6" stroke-width="2"/></svg>`;
+}
+
+function gambar(){
+  diBand = false;
+  const t = document.getElementById('pohon'); t.innerHTML = '';
+  const wrap = document.createElement('div'); wrap.className = 'pohon-in';
+  wrap.appendChild(kartu('assign', 'akar'));
+  const tg = tombol('assign'); if (tg) wrap.appendChild(tg);
+  if (!lipat.has('assign')){ const c = cabang('assign', 1); if (c) wrap.appendChild(c); }
+  t.appendChild(wrap);
+
+  // induk band = kartu di tingkat BATAS yang masih punya rincian
+  const induk = NODES.find(x => dalamnya(x.id) === BATAS && (anak[x.id] || []).length
+    && !lipat.has(x.id) && terlihat(x.id));
+  const band = document.getElementById('band'), sam = document.getElementById('sambung');
+  if (!induk){
+    band.hidden = sam.hidden = true; band.innerHTML = ''; sam.innerHTML = '';
+  } else {
+    const kartuAsal = t.querySelector(`.kartu[data-id="${induk.id}"]`);
+    if (kartuAsal) kartuAsal.dataset.asal = '1';
+    band.hidden = sam.hidden = false;
+    band.innerHTML = '<div class="band-in"></div>';
+    diBand = true;
+    band.querySelector('.band-in').appendChild(barisKartu(anak[induk.id], false, 3));
+    diBand = false;
+  }
+  catatan();
+  requestAnimationFrame(sambungkan);
+}
+
+let jedaUkur;
+window.addEventListener('resize', () => { clearTimeout(jedaUkur); jedaUkur = setTimeout(sambungkan, 120); });
+
+/* ================= popup ================= */
+function jalur(id){ const j = []; let c = id; while (c){ j.unshift(byId[c].label); c = byId[c].parent; } return j; }
+
+function kolom(n){
+  const c = [{h:'', t:'no'}, {h:'Kabupaten/Kota', t:'nm'}];
+  if (n.base) c.push({h:byId[n.parent].label, f:n.base, t:'n'});
+  (n.parts || []).forEach(([lb, f]) => c.push({h:lb, f, t:'n'}));
+  c.push({h:n.label, f:n.field, t:'n', kuat:1});
+  if (n.resmi){
+    if (n.resmi.f && n.resmi.f !== n.field && !c.some(x => x.f === n.resmi.f)) c.push({h:n.resmi.fl, f:n.resmi.f, t:'n'});
+    if (c.some(x => x.f === n.resmi.b)) c.push({h:'% FASIH', t:'r'}); else
+    c.push({h:n.resmi.bl, f:n.resmi.b, t:'n'}, {h:'% FASIH', t:'r'});
+  }
+  if (n.base) c.push({h:'% dari induk', t:'p'});
+  c.push({h:'', t:'b'});
+  return c;
+}
+const isiSel = (k, n, c) => (c.t === 'nm' || c.t === 'no') ? (k === '18' ? 'LAMPUNG' : R[k].nama)
+  : c.t === 'r' ? (pResmi(k, n) || 0)
+  : (c.t === 'p' || c.t === 'b') ? (rasio(k, n) || 0) : val(k, c.f);
+
+function bukaPop(id, dari){
+  aktif = id; balik = dari; urut = null;
+  document.getElementById('tirai').hidden = false;
+  document.body.classList.add('kunci-gulir');
+  isiPop(id);
+  document.querySelector('.tutup').focus();
+}
+function tutupPop(){
+  document.getElementById('tirai').hidden = true;
+  document.body.classList.remove('kunci-gulir');
+  aktif = null; if (balik) balik.focus();
+}
+
+function isiPop(id){
+  const n = byId[id], w = WARNA[n.warna], v = val(wil, n.field);
+  const pop = document.getElementById('pop'); pop.style.setProperty('--warna', w);
+  const kols = kolom(n), nama = wil === '18' ? 'Provinsi Lampung' : R[wil].nama;
+
+  const bar = (k, x) => pUtama(k, x);
+  let baris = KODES.slice();
+  if (urut){ const c = kols[urut.k];
+    baris.sort((a, b) => { const x = isiSel(a, n, c), y = isiSel(b, n, c);
+      return (typeof x === 'string' ? x.localeCompare(y) : x - y) * urut.arah; });
+  } else if (basisField(n)) baris.sort((a, b) => ((bar(b,n)||0) - (bar(a,n)||0)) * (n.neg ? -1 : 1));
+  else baris.sort((a, b) => val(b, n.field) - val(a, n.field));
+  const mx = Math.max(...KODES.map(k => bar(k, n) || 0), 0.001);
+
+  let nav = '';
+  if (n.parent) nav += `<button class="naik" data-go="${n.parent}">\u2191 ${byId[n.parent].label}</button>`;
+  (anak[id] || []).forEach(k => nav += `<button data-go="${k}">\u2193 ${byId[k].label}</button>`);
+
+  let hitung = `<div class="rumus">${n.rumus}</div>`;
+  if (n.parts) hitung += `<div class="rumus">` + n.parts.map(([lb, f]) => `${lb} ${nf(val(wil, f))}`).join(' &nbsp;+&nbsp; ')
+    + ` &nbsp;=&nbsp; ${nf(v)}</div>`;
+  if (n.base) hitung += `<div class="rumus">porsi dari induk: ${nf(v)} \u00f7 ${nf(val(wil, n.base))} ${byId[n.parent].label.toLowerCase()} = ${pf(rasio(wil, n))}</div>`;
+  if (n.resmi) hitung += `<div class="rumus resmi"><b>Persen resmi FASIH</b><br>${nf(vResmi(wil, n))} \u00f7 ${nf(val(wil, n.resmi.b))} ${n.resmi.bl} = ${pf(pResmi(wil, n))}<br>
+    <span class="asal2">kolom ekspor: ${n.resmi.kol}</span></div>`;
+  if (n.turunan) hitung += `<div class="rumus catatanturun">${n.turunan}</div>`;
+  if (n.rasio && val(wil, n.rasio[0])) hitung += `<div class="rumus">${nf(v)} \u00f7 ${nf(val(wil, n.rasio[0]))} = ${
+    (v/val(wil, n.rasio[0])).toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})} ${n.rasio[1]}</div>`;
+
+  const thead = kols.map((c, i) => `<th class="${c.t === 'nm' || c.t === 'no' ? 'kiri' : ''}" data-k="${i}">${c.h}</th>`).join('');
+  const sel = (k, c, i) => c.t === 'no' ? `<td class="no">${i + 1}</td>`
+    : c.t === 'nm' ? `<td class="kiri">${R[k].nama}</td>`
+    : c.t === 'p' ? `<td class="n">${pf(rasio(k, n))}</td>`
+    : c.t === 'r' ? `<td class="n kuat">${pf(pResmi(k, n))}</td>`
+    : c.t === 'b' ? `<td class="bar"><span><i style="width:${Math.max(1, (bar(k,n)||0)/mx*100)}%"></i></span></td>`
+    : `<td class="n ${c.kuat ? 'kuat' : ''}">${nf(val(k, c.f))}</td>`;
+  const tbody = baris.map((k, i) => `<tr class="${k === wil ? 'aku' : ''}">` + kols.map(c => sel(k, c, i)).join('') + `</tr>`).join('');
+  const tfoot = `<tr>` + kols.map(c => c.t === 'no' ? `<td></td>`
+    : c.t === 'nm' ? `<td class="kiri">LAMPUNG</td>`
+    : c.t === 'p' ? `<td class="n">${pf(rasio('18', n))}</td>`
+    : c.t === 'r' ? `<td class="n kuat">${pf(pResmi('18', n))}</td>`
+    : c.t === 'b' ? `<td class="bar"></td>`
+    : `<td class="n ${c.kuat ? 'kuat' : ''}">${nf(val('18', c.f))}</td>`).join('') + `</tr>`;
+
+  pop.innerHTML = `
+    <button class="tutup" id="btnTutup" aria-label="Tutup">&times;</button>
+    <div class="pop-kop">
+      <div>
+        <div class="pop-jalur">${jalur(id).map((x, i, a) => i === a.length-1 ? `<b>${x}</b>` : x).join(' \u203a ')}</div>
+        <h2 id="popJudul">${n.label}</h2>
+        <div class="satuan">satuan ${n.unit}${n.tipe === 'tautan' ? ' \u00b7 tidak menambah induk' : ''}</div>
+      </div>
+      <div class="pop-angka">
+        <div class="v">${nf(v)}</div>
+        <div class="s">${nama}${promo(n) ? ' \u00b7 FASIH ' + pf(pResmi(wil, n)) + ' dari ' + n.resmi.bl
+          : (n.base ? ' \u00b7 ' + pf(rasio(wil, n)) + ' dari ' + byId[n.parent].label.toLowerCase() : '')}</div>
+      </div>
+    </div>
+    <div class="pop-ket">
+      <div><h3>Apa yang dihitung</h3><p>${n.ket}</p><div class="pop-nav">${nav}</div></div>
+      <div><h3>Cara hitung</h3>${hitung}<div class="asal">Asal data: ${n.sumber}</div></div>
+    </div>
+    <div class="pop-tab">
+      <h3>Tabel 15 kabupaten/kota se-Lampung <button id="btnCsv">Unduh CSV</button></h3>
+      <table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody><tfoot>${tfoot}</tfoot></table>
+      <div class="pop-catatan">Klik judul kolom untuk mengurutkan.
+        ${basisField(n) ? 'Urutan awal menurut persentase, ' + (n.neg ? 'terkecil dahulu karena makin kecil makin baik.' : 'terbesar dahulu.')
+          : 'Urutan awal menurut jumlah terbesar.'}
+        Baris kuning adalah wilayah yang sedang dipilih di bagian atas halaman.</div>
+    </div>`;
+
+  pop.querySelector('#btnTutup').onclick = tutupPop;
+  pop.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { aktif = b.dataset.go; urut = null; isiPop(aktif);
+    document.getElementById('tirai').scrollTop = 0; });
+  pop.querySelectorAll('th[data-k]').forEach(th => th.onclick = () => {
+    const k = +th.dataset.k;
+    urut = (urut && urut.k === k) ? {k, arah: -urut.arah} : {k, arah: kols[k].t === 'nm' ? 1 : -1};
+    isiPop(aktif); });
+  pop.querySelector('#btnCsv').onclick = () => {
+    const kk = kols.filter(c => c.t !== 'b' && c.t !== 'no');
+    const rows = [kk.map(c => c.h)];
+    KODES.concat('18').forEach(k => rows.push(kk.map(c => c.t === 'nm' ? (k === '18' ? 'LAMPUNG' : R[k].nama)
+      : c.t === 'p' ? pf(rasio(k, n)).replace('%','')
+      : c.t === 'r' ? pf(pResmi(k, n)).replace('%','') : val(k, c.f))));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + rows.map(r => r.map(x => `"${x}"`).join(';')).join('\r\n')], {type:'text/csv'}));
+    a.download = `SE2026_${n.id}_Lampung.csv`; a.click(); URL.revokeObjectURL(a.href); };
+}
+
+document.getElementById('tirai').onclick = e => { if (e.target.id === 'tirai') tutupPop(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && aktif) tutupPop(); });
+
+/* ================= catatan ================= */
+function catatan(){
+  const nama = wil === '18' ? 'Provinsi Lampung' : R[wil].nama;
+  const jum = val(wil,'verif') + val(wil,'draft') + val(wil,'open'), tot = val(wil,'tot_assign');
+  let per = '';
+  if (jum !== tot) per = `<div class="peringatan"><b>Catatan data ${nama}.</b>
+    Verifikasi ditambah draft melebihi jumlah assignment sebesar ${nf(Math.abs(jum-tot))}.
+    Ini muncul karena tarikan data pendataan dan pemutakhiran keluarga diambil pada jam berbeda.
+    Open ditampilkan 0 karena tidak boleh negatif. Angka akan lurus setelah tarikan berikutnya.</div>`;
+  document.getElementById('catatan').innerHTML = per + `
+    <h4>Cara membaca</h4>
+    <ul>
+      <li>Kartu teratas adalah semesta pekerjaan: seluruh assignment SE2026, yaitu prelist awal ditambah assignment baru dari lapangan.</li>
+      <li>Kartu bergaris penuh adalah pecahan dari induknya. Jumlah satu baris selalu sama dengan angka induk, dan pita persamaan membuktikannya di setiap percabangan.</li>
+      <li>Kartu bergaris putus memakai satuan berbeda, misalnya jiwa untuk anggota keluarga dan bangunan untuk keluarga khusus. Angkanya tidak dijumlahkan ke induk.</li>
+      <li>Klik kartu untuk membuka tabel 15 kabupaten/kota berikut definisi, rumus, dan kolom asalnya di berkas ekspor.</li>
+      <li>Ganti pilihan wilayah untuk menghitung ulang seluruh pohon memakai angka satu kabupaten/kota.</li>
+    </ul>
+    <h4 style="margin-top:14px">Sumber</h4>
+    <ul>
+      <li>Export_Progres_Pendataan_Kabupaten_Kota.xlsx &mdash; lembar Progres Pendataan, Usaha/Perusahaan, Skala Usaha, Usaha Keluarga, Keseluruhan Usaha.</li>
+      <li>Export_Progres_Pemutakhiran_Keluarga_Kabupaten_Kota.xlsx &mdash; lembar Keluarga, Anggota Keluarga, Keluarga Khusus.</li>
+      <li>Seluruh identitas penjumlahan pada halaman ini telah diuji dan lulus pada provinsi maupun 15 kabupaten/kota.</li>
+    </ul>`;
+}
+
+initKendali();
+gambar();
+</script>
+</body>
+</html>
