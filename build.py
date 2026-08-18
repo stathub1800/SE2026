@@ -3,82 +3,227 @@
 Pembangun halaman Struktur Progres SE2026 - BPS Provinsi Lampung.
 
 Cara pakai:
-    1. Taruh dua berkas ekspor FASIH terbaru di folder  data\
+    1. Taruh dua berkas ekspor FASIH terbaru di folder  data\\
     2. Jalankan:  python build.py
     3. Hasilnya:  index.html  (siap di-commit ke GitHub Pages)
+
+Kolom dicari berdasarkan JUDUL kolom, bukan nomor urutnya, sehingga tetap
+bekerja walau FASIH menyisipkan kolom baru di tengah tabel.
 
 Nama kartu, definisi, dan rumus ada di daftar N di bawah. Ubah "label" untuk
 mengganti nama kartu; jangan ubah "id" karena itu kunci penghubung antar kartu.
 """
-import sys, glob, json, datetime, pathlib
+import sys, json, datetime, pathlib, re
 import pandas as pd
+from openpyxl import load_workbook
 
 AKAR = pathlib.Path(__file__).resolve().parent
 DATA = AKAR / "data"
 
-def cari(pola, keterangan):
+def cari_berkas(pola, keterangan):
     hit = sorted(DATA.glob(pola))
     if not hit:
         sys.exit(f"GAGAL: berkas {keterangan} tidak ditemukan di {DATA}\n"
                  f"       Dicari dengan pola: {pola}")
     return max(hit, key=lambda p: p.stat().st_mtime)
 
-F1 = cari("*Pendataan*.xlsx", "Progres Pendataan")
-F2 = cari("*Pemutakhiran*Keluarga*.xlsx", "Pemutakhiran Keluarga")
+F1 = cari_berkas("*Pendataan*.xlsx", "Progres Pendataan")
+F2 = cari_berkas("*Pemutakhiran*Keluarga*.xlsx", "Pemutakhiran Keluarga")
 print(f"  Pendataan   : {F1.name}")
 print(f"  Pemutakhiran: {F2.name}")
 
-def grab(f, s, skip):
-    d = pd.read_excel(f, sheet_name=s, header=None, skiprows=skip)
-    d = d[pd.to_numeric(d[0], errors="coerce").notna()].copy()
-    d[0] = d[0].astype(int).astype(str)
-    return d.set_index(0)
+# ---------------------------------------------------------------- pemetaan kolom
+def bersih(t):
+    return re.sub(r"\s+", " ", str(t or "").replace("\u200b", "").replace("\xa0", " ")).strip()
 
-def I(df, k, c):
-    v = df.loc[k, c]
-    return 0 if pd.isna(v) else int(v)
+def struktur(path, sheet):
+    """Kembalikan (daftar judul tiap kolom, nomor baris data pertama)."""
+    ws = load_workbook(path, data_only=True)[sheet]
+    A = lambda r: bersih(ws.cell(row=r, column=1).value)
+    try:
+        baris_data = next(r for r in range(1, 40) if A(r).isdigit())
+        baris_kode = next(r for r in range(1, baris_data) if A(r).lower() == "kode")
+    except StopIteration:
+        sys.exit(f"GAGAL: susunan judul lembar '{sheet}' tidak dikenali.")
+    judul = list(range(baris_kode, baris_data - 1))
+    isi = {(r, c): bersih(ws.cell(row=r, column=c).value)
+           for r in judul for c in range(1, ws.max_column + 1)}
+    for rng in ws.merged_cells.ranges:
+        v = bersih(ws.cell(row=rng.min_row, column=rng.min_col).value)
+        for r in range(rng.min_row, rng.max_row + 1):
+            if r in judul:
+                for c in range(rng.min_col, rng.max_col + 1):
+                    isi[(r, c)] = v
+    label = []
+    for c in range(1, ws.max_column + 1):
+        p = []
+        for r in judul:
+            t = isi.get((r, c), "")
+            if t and (not p or p[-1] != t):
+                p.append(t)
+        label.append(" > ".join(p))
+    return label, baris_data - 1
 
-def PC(df, k, c):
-    v = df.loc[k, c]
-    if pd.isna(v):
-        return None
-    return float(v.replace(".", "").replace(",", ".")) if isinstance(v, str) else float(v)
+class Lembar:
+    def __init__(self, path, sheet):
+        self.nama = sheet
+        self.label, skip = struktur(path, sheet)
+        d = pd.read_excel(path, sheet_name=sheet, header=None, skiprows=skip)
+        d = d[pd.to_numeric(d[0], errors="coerce").notna()].copy()
+        d[0] = d[0].astype(int).astype(str)
+        self.df = d.set_index(0)
+        self.peta = {}
 
-pp  = grab(F1, "PROGRES PENDATAAN", 6)
-up  = grab(F1, "USAHA PERUSAHAAN", 7)
-sk  = grab(F1, "SKALA USAHA", 6)
-uk  = grab(F1, "USAHA KELUARGA", 6)
-ku  = grab(F1, "KESELURUHAN USAHA", 6)
-kel = grab(F2, "KELUARGA", 5)
-ak  = grab(F2, "ANGGOTA KELUARGA", 5)
-kk  = grab(F2, "KELUARGA KHUSUS", 6)
+    def kolom(self, nama, ada=(), tanpa=(), daun=None, wajib=True):
+        hit = []
+        for i, lab in enumerate(self.label):
+            l = lab.lower()
+            if any(a.lower() not in l for a in ada):        continue
+            if any(t.lower() in l for t in tanpa):          continue
+            if daun is not None and bersih(lab.split(" > ")[-1]).lower() != daun.lower(): continue
+            hit.append(i)
+        if len(hit) != 1:
+            if not wajib:
+                return None
+            sisa = "tidak ada" if not hit else "lebih dari satu: " + ", ".join(
+                f"[{i}] {self.label[i][:60]}" for i in hit)
+            sys.exit(f"GAGAL: kolom '{nama}' pada lembar '{self.nama}' {sisa}.\n"
+                     f"       Kemungkinan susunan ekspor FASIH berubah lagi.\n"
+                     f"       Judul kolom yang terbaca:\n" +
+                     "\n".join(f"         [{i}] {x}" for i, x in enumerate(self.label)))
+        self.peta[nama] = hit[0]
+        return hit[0]
 
-kodes_semua = list(pp.index)
+    def nilai(self, kode, kol):
+        if kol is None:
+            return 0
+        v = self.df.loc[kode, kol]
+        return 0 if pd.isna(v) else int(v)
+
+    def persen(self, kode, kol):
+        if kol is None:
+            return None
+        v = self.df.loc[kode, kol]
+        if pd.isna(v):
+            return None
+        return float(str(v).replace(".", "").replace(",", ".")) if isinstance(v, str) else float(v)
+
+pp  = Lembar(F1, "PROGRES PENDATAAN")
+up  = Lembar(F1, "USAHA PERUSAHAAN")
+sk  = Lembar(F1, "SKALA USAHA")
+uk  = Lembar(F1, "USAHA KELUARGA")
+ku  = Lembar(F1, "KESELURUHAN USAHA")
+kel = Lembar(F2, "KELUARGA")
+ak  = Lembar(F2, "ANGGOTA KELUARGA")
+kk  = Lembar(F2, "KELUARGA KHUSUS")
+
+K = {}
+K["pre_assign"]  = pp.kolom("prelist assignment", ["jumlah assignment"], daun="Prelist")
+K["baru_assign"] = pp.kolom("assignment baru",    ["jumlah assignment"], daun="Baru")
+K["verif"]       = pp.kolom("hasil verifikasi",   ["hasil verifikasi"], tanpa=["persentase"])
+K["p_verif"]     = pp.kolom("% hasil verifikasi", ["persentase hasil verifikasi"])
+K["responden"]   = pp.kolom("responden didata",   ["responden didata"], tanpa=["persentase", "sedang"])
+K["p_responden"] = pp.kolom("% responden didata", ["persentase responden didata"], tanpa=["sedang"])
+K["draft"]       = pp.kolom("draft",              ["sedang didata"], tanpa=["persentase"])
+K["p_draft"]     = pp.kolom("% draft",            ["persentase", "sedang didata"])
+# kolom Open baru muncul pada ekspor Agustus 2026; kalau tidak ada, Open dihitung sebagai sisa
+K["open_ub"]  = pp.kolom("open UB",       ["belum didata"], daun="UB",       wajib=False)
+K["open_um"]  = pp.kolom("open UM",       ["belum didata"], daun="UM",       wajib=False)
+K["open_umk"] = pp.kolom("open UMK",      ["belum didata"], daun="UMK",      wajib=False)
+K["open_kel"] = pp.kolom("open keluarga", ["belum didata"], daun="Keluarga", wajib=False)
+ADA_OPEN = all(K[x] is not None for x in ("open_ub", "open_um", "open_umk", "open_kel"))
+
+K["pre_usaha"] = up.kolom("prelist usaha", ["jumlah prelist usaha"], tanpa=["keluarga"])
+K["force"]     = up.kolom("force submit",  ["force submit"], tanpa=["persentase"])
+K["p_force"]   = up.kolom("% force submit",["persentase force submit"])
+K["bku"]       = up.kolom("usaha BKU",     ["usaha bku ("], tanpa=["persentase"])
+K["p_bku"]     = up.kolom("% usaha BKU",   ["persentase", "usaha bku ("])
+
+SKALA = "menurut status skala"
+K["pre_ub"]  = sk.kolom("prelist UB",  ["jumlah prelist"], daun="UB")
+K["pre_um"]  = sk.kolom("prelist UM",  ["jumlah prelist"], daun="UM")
+K["pre_umk"] = sk.kolom("prelist UMK", ["jumlah prelist"], daun="UMK")
+K["ub"]      = sk.kolom("UB tercacah",  [SKALA], daun="UB")
+K["um"]      = sk.kolom("UM tercacah",  [SKALA], daun="UM")
+K["umk"]     = sk.kolom("UMK tercacah", [SKALA], daun="UMK")
+K["p_ub"]    = sk.kolom("% UB",  [SKALA], daun="Persentase UB")
+K["p_um"]    = sk.kolom("% UM",  [SKALA], daun="Persentase UM")
+K["p_umk"]   = sk.kolom("% UMK", [SKALA], daun="Persentase UMK")
+K["unk"]     = sk.kolom("skala tak terklasifikasi", ["tidak dapat diklasifikasikan"])
+
+UKG = "usaha keluarga menurut status"
+K["pre_uk"]  = uk.kolom("prelist usaha keluarga", ["jumlah prelist usaha keluarga"])
+K["uk_ok"]   = uk.kolom("usaha keluarga ditemukan", [UKG], daun="Ditemukan")
+K["uk_baru"] = uk.kolom("usaha keluarga baru",      [UKG], daun="Baru")
+K["uk"]      = uk.kolom("usaha dalam keluarga",   ["jumlah usaha dalam keluarga"])
+K["p_uk"]    = uk.kolom("% usaha dalam keluarga", ["persentase usaha dalam keluarga"])
+
+K["usaha_all"]     = ku.kolom("total usaha",         daun="Total Usaha")
+K["p_usaha_all"]   = ku.kolom("% total usaha",       daun="Persentase Total Usaha")
+K["pre_usaha_all"] = ku.kolom("total prelist usaha", ["total prelist usaha dan usaha keluarga"])
+
+K["pre_kel"]  = kel.kolom("prelist awal keluarga", ["prelist awal"])
+K["kel_ok"]   = kel.kolom("keluarga ditemukan",    daun="Ditemukan")
+K["p_kelok"]  = kel.kolom("% keluarga ditemukan",  daun="Persentase Ditemukan")
+K["kel_baru"] = kel.kolom("keluarga baru",         ["keluarga baru"])
+K["kel"]      = kel.kolom("total hasil keluarga",  ["total hasil pendataan"], tanpa=["persentase"])
+K["p_kel"]    = kel.kolom("% total hasil keluarga",["persentase total hasil pendataan"])
+
+K["ak_bersama"] = ak.kolom("AK tinggal bersama", ["tinggal bersama"])
+K["ak_baru"]    = ak.kolom("AK baru",            ["anggota keluarga baru"])
+K["ak"]         = ak.kolom("total AK",           ["total anggota keluarga"])
+
+K["kk_bangunan"] = kk.kolom("bangunan K1 hasil listing", ["hasil pendataan ppl"])
+K["kk_didata"]   = kk.kolom("bangunan K1 didata",  ["khusus didata"], tanpa=["persentase"])
+K["p_kk"]        = kk.kolom("% bangunan K1 didata",["persentase bangunan keluarga khusus didata"])
+
+print("\nPeta kolom yang terbaca:")
+for lb, obj in (("PROGRES PENDATAAN", pp), ("USAHA PERUSAHAAN", up), ("SKALA USAHA", sk),
+                ("USAHA KELUARGA", uk), ("KESELURUHAN USAHA", ku), ("KELUARGA", kel),
+                ("ANGGOTA KELUARGA", ak), ("KELUARGA KHUSUS", kk)):
+    isi = ", ".join(f"{n}={i}" for n, i in obj.peta.items())
+    print(f"  {lb:<20} {isi}")
+print("  kolom Open resmi: " + ("ADA, dipakai langsung" if ADA_OPEN else "tidak ada, Open dihitung sebagai sisa"))
+
+# ---------------------------------------------------------------- rakit data
+kodes_semua = list(pp.df.index)
 rows = {}
 for k in kodes_semua:
-    r = {"nama": str(pp.loc[k, 1])}
-    r["pre_assign"] = I(pp,k,2); r["baru_assign"] = I(pp,k,3)
+    r = {"nama": str(pp.df.loc[k, 1])}
+    r["pre_assign"] = pp.nilai(k, K["pre_assign"]); r["baru_assign"] = pp.nilai(k, K["baru_assign"])
     r["tot_assign"] = r["pre_assign"] + r["baru_assign"]
-    r["verif"] = I(pp,k,4); r["responden"] = I(pp,k,6); r["draft"] = I(pp,k,8)
-    r["open"]  = max(r["tot_assign"] - r["verif"] - r["draft"], 0)
+    r["verif"] = pp.nilai(k, K["verif"]); r["responden"] = pp.nilai(k, K["responden"])
+    r["draft"] = pp.nilai(k, K["draft"])
+    if ADA_OPEN:
+        r["open_ub"]  = pp.nilai(k, K["open_ub"]);  r["open_um"]  = pp.nilai(k, K["open_um"])
+        r["open_umk"] = pp.nilai(k, K["open_umk"]); r["open_kel"] = pp.nilai(k, K["open_kel"])
+        r["open"] = r["open_ub"] + r["open_um"] + r["open_umk"] + r["open_kel"]
+    else:
+        r["open"] = max(r["tot_assign"] - r["verif"] - r["draft"], 0)
     r["nihil"] = r["verif"] - r["responden"]
-    r["pre_usaha"] = I(up,k,2); r["bku"] = I(up,k,35); r["force"] = I(up,k,33)
-    r["usaha_unit"] = r["bku"] + r["force"]
-    r["ub"] = I(sk,k,6); r["um"] = I(sk,k,8); r["umk"] = I(sk,k,10); r["unk"] = I(sk,k,12)
-    r["pre_ub"] = I(sk,k,2); r["pre_um"] = I(sk,k,3); r["pre_umk"] = I(sk,k,4)
-    r["pre_uk"] = I(uk,k,2); r["uk_ok"] = I(uk,k,3); r["uk_baru"] = I(uk,k,11); r["uk"] = I(uk,k,15)
-    r["usaha_all"] = I(ku,k,17); r["pre_usaha_all"] = I(ku,k,4)
-    r["pre_kel"] = I(kel,k,2); r["kel_ok"] = I(kel,k,3); r["kel_baru"] = I(kel,k,5); r["kel"] = I(kel,k,14)
-    r["ak_bersama"] = I(ak,k,2); r["ak_baru"] = I(ak,k,3); r["ak"] = I(ak,k,9)
-    r["kk_bangunan"] = I(kk,k,2); r["kk_didata"] = I(kk,k,3)
-    r["p_verif"] = PC(pp,k,5); r["p_responden"] = PC(pp,k,7); r["p_draft"] = PC(pp,k,9)
-    r["p_bku"] = PC(up,k,36); r["p_force"] = PC(up,k,34)
-    r["p_ub"] = PC(sk,k,7); r["p_um"] = PC(sk,k,9); r["p_umk"] = PC(sk,k,11)
-    r["p_uk"] = PC(uk,k,16); r["p_usaha_all"] = PC(ku,k,18)
-    r["p_kel"] = PC(kel,k,15); r["p_kelok"] = PC(kel,k,4); r["p_kk"] = PC(kk,k,4)
+    r["pre_usaha"] = up.nilai(k, K["pre_usaha"]); r["bku"] = up.nilai(k, K["bku"])
+    r["force"] = up.nilai(k, K["force"]); r["usaha_unit"] = r["bku"] + r["force"]
+    for f in ("ub", "um", "umk", "unk", "pre_ub", "pre_um", "pre_umk"):
+        r[f] = sk.nilai(k, K[f])
+    for f in ("pre_uk", "uk_ok", "uk_baru", "uk"):
+        r[f] = uk.nilai(k, K[f])
+    r["usaha_all"] = ku.nilai(k, K["usaha_all"]); r["pre_usaha_all"] = ku.nilai(k, K["pre_usaha_all"])
+    for f in ("pre_kel", "kel_ok", "kel_baru", "kel"):
+        r[f] = kel.nilai(k, K[f])
+    for f in ("ak_bersama", "ak_baru", "ak"):
+        r[f] = ak.nilai(k, K[f])
+    r["kk_bangunan"] = kk.nilai(k, K["kk_bangunan"]); r["kk_didata"] = kk.nilai(k, K["kk_didata"])
+    r["p_verif"] = pp.persen(k, K["p_verif"]); r["p_responden"] = pp.persen(k, K["p_responden"])
+    r["p_draft"] = pp.persen(k, K["p_draft"])
+    r["p_bku"] = up.persen(k, K["p_bku"]); r["p_force"] = up.persen(k, K["p_force"])
+    r["p_ub"] = sk.persen(k, K["p_ub"]); r["p_um"] = sk.persen(k, K["p_um"]); r["p_umk"] = sk.persen(k, K["p_umk"])
+    r["p_uk"] = uk.persen(k, K["p_uk"]); r["p_usaha_all"] = ku.persen(k, K["p_usaha_all"])
+    r["p_kel"] = kel.persen(k, K["p_kel"]); r["p_kelok"] = kel.persen(k, K["p_kelok"])
+    r["p_kk"] = kk.persen(k, K["p_kk"])
+    r["p_open"] = round(r["open"] / r["pre_assign"] * 100, 2) if r["pre_assign"] else None
     rows[k] = r
 
-# ---- uji mutu: identitas penjumlahan dan persentase resmi ----
+# ---------------------------------------------------------------- uji mutu
 def uji(nama, fn):
     salah = [k for k in kodes_semua if fn(rows[k])[0] != fn(rows[k])[1]]
     print(("  OK    " if not salah else "  GAGAL ") + nama + ("" if not salah else "  -> " + ", ".join(salah)))
@@ -92,7 +237,14 @@ lulus = all([
     uji("UB + UM + UMK + lainnya = usaha BKU",                   lambda r: (r["ub"]+r["um"]+r["umk"]+r["unk"], r["bku"])),
     uji("keluarga ditemukan + baru = keluarga",                  lambda r: (r["kel_ok"]+r["kel_baru"], r["kel"])),
     uji("usaha BKU + usaha dalam keluarga = total usaha",        lambda r: (r["bku"]+r["uk"], r["usaha_all"])),
+    uji("verifikasi + draft + open = total assignment",          lambda r: (r["verif"]+r["draft"]+r["open"], r["tot_assign"])),
 ])
+
+neg = [f"{rows[k]['nama']} ({rows[k]['open']:,})".replace(",", ".") for k in kodes_semua if rows[k]["open"] < 0]
+if neg:
+    print("  CATATAN Open bernilai negatif di: " + "; ".join(neg))
+    print("          Angka ini apa adanya dari FASIH. Terjadi bila assignment yang sudah dikerjakan")
+    print("          melampaui prelist wilayah tersebut. Jelaskan bila ditanya pimpinan.")
 
 print("\nUji persentase resmi FASIH terhadap hitung ulang:")
 pasangan = [("p_verif","verif","pre_assign"),("p_responden","responden","pre_assign"),("p_draft","draft","pre_assign"),
@@ -196,6 +348,19 @@ N=[
    sumber='Keluarga Khusus kol. (4)',
    resmi=dict(p='p_kk',b='kk_bangunan',bl='bangunan hasil listing PPL',kol='Keluarga Khusus kol. (5)')),
 ]
+
+# Ekspor Agustus 2026 sudah memuat kolom Open beserta rinciannya.
+if ADA_OPEN:
+    for n in N:
+        if n["id"] == "open":
+            n["ket"] = ("Assignment yang belum disentuh sama sekali. Sisa beban murni yang masih harus "
+                        "dikerjakan. Sejak ekspor Agustus 2026 angkanya tersedia langsung di FASIH, "
+                        "dirinci menurut UB, UM, UMK, dan keluarga.")
+            n["rumus"] = "Open UB + UM + UMK + Keluarga"
+            n["parts"] = [("UB", "open_ub"), ("UM", "open_um"), ("UMK", "open_umk"), ("Keluarga", "open_kel")]
+            n["sumber"] = "Progres Pendataan kol. (11) sampai (14)"
+            n["turunan"] = ("Penjumlahan empat kolom Open di ekspor. Persentasenya tidak tersedia di berkas, "
+                            "jadi yang ditampilkan adalah porsi terhadap total assignment.")
 
 def jam(p):
     return datetime.datetime.fromtimestamp(p.stat().st_mtime).strftime("%d %b %Y %H.%M")
